@@ -85,20 +85,22 @@ public class useOfSankoff_Spath_Auckenthaler {
         Jaguarundi.setParent(Z);
         Jaguarundi.setCharacterStates(characters_dic);
 
-        //create top down and bottom up orderd List of Nodes
+        //create top down and bottom up orderd Lists of Nodes
         List<Node> list =new ArrayList<>();
         list= X.traversePreOrder(X,list);
         List<Node> newlist =new ArrayList<>();
         newlist= reverseOrder(list);
 
 
+        //new List of parent Nodes
+        List<Node> parents = new ArrayList<>();
+        //initalise states
+        parents = initScores(newlist,states,characters_dic);
+        //Update states of Parent states
+        updateScores(parents,weightMatrix);
 
         //implement top-down phase of Sankoff's
-        //initalise states
-        initScores(newlist,states,characters_dic);
-        //Update states of Parent states
-        updateScores(newlist,weightMatrix);
-        
+
     }
 
 
@@ -124,10 +126,10 @@ public class useOfSankoff_Spath_Auckenthaler {
         return newList;
     }
 
-    public static void initScores(List<Node> newlist, String[][] states, Dictionary dic) {
+    public static List<Node> initScores(List<Node> newlist, String[][] states, Dictionary dic) {
         Double inf = Double.POSITIVE_INFINITY;
+        List<Node> parentsList = new ArrayList<>();
         for(Node node:newlist){
-            System.out.println(node.getName());
             String[] animalStates = node.getCharacterStates();
             ArrayList<double[]> sc = new ArrayList<double[]>();
             //init states
@@ -145,12 +147,15 @@ public class useOfSankoff_Spath_Auckenthaler {
                     }
                     sc.add(scores);
 
-                    System.out.println("scores: " + Arrays.toString(scores));
+                    System.out.println("Initialisation-Scores " + node.getName()+" Characterstate "+(i+1)+": "+ Arrays.toString(scores));
                 }
                 node.setParsimonyScores(sc);
             }
-
+            else {
+                parentsList.add(node);
+            }
         }
+        return parentsList;
     }
 
     public static void updateScores(List<Node>newlist, double [][]weightMatrix){
@@ -158,62 +163,49 @@ public class useOfSankoff_Spath_Auckenthaler {
          * Update the scores, using Sankoffs small parsimoies algorithm
          */
         for(Node node:newlist){
-            if (node.getParent()!= null) {
-                Node parent = node.getParent();
-                //System.out.println("parent: " + parent.getName());
-                Node childLeft = parent.getLeftChild();
-                //System.out.println("Left child: " + childLeft.getName());
-                Node childRight = parent.getRightChild();
-                //System.out.println("Right child: " + childRight.getName());
+            //if (node.getParent()!= null) {
+                //Node parent = node.getParent();
+                Node childLeft = node.getLeftChild();
+                Node childRight = node.getRightChild();
                 ArrayList<double[]> PS = new ArrayList<double[]>();
 
                 for (int k = 0; k < childLeft.getCharacterStates().length; k++) {
                     double[] sL = childLeft.getParsimonyScoresAtIndex(k);
-                    //System.out.println("SL"+Arrays.toString(sL));
                     double[] sR = childRight.getParsimonyScoresAtIndex(k);
-                    //System.out.println("SR"+Arrays.toString(sR));
                     ArrayList<Double> low_vectorLeft = new ArrayList<Double>();
                     ArrayList<Double> low_vectorRight = new ArrayList<Double>();
                     ArrayList<Double> high_vectorLeft = new ArrayList<Double>();
                     ArrayList<Double> high_vectorRight = new ArrayList<Double>();
                     ArrayList<Double> unknown_vectorLeft = new ArrayList<Double>();
                     ArrayList<Double> unknown_vectorRight = new ArrayList<Double>();
-
                     low_vectorLeft.add(sL[0]+weightMatrix[0][0]);
                     low_vectorLeft.add(sL[1]+weightMatrix[0][1]);
                     low_vectorLeft.add(sL[2]+weightMatrix[0][2]);
-
                     low_vectorRight.add(sR[0]+weightMatrix[0][0]);
                     low_vectorRight.add(sR[1]+weightMatrix[0][1]);
                     low_vectorRight.add(sR[2]+weightMatrix[0][2]);
-
                     high_vectorLeft.add(sL[0]+weightMatrix[1][0]);
                     high_vectorLeft.add(sL[1]+weightMatrix[1][1]);
                     high_vectorLeft.add(sL[2]+weightMatrix[1][2]);
-
                     high_vectorRight.add(sR[0]+weightMatrix[1][0]);
                     high_vectorRight.add(sR[1]+weightMatrix[1][1]);
                     high_vectorRight.add(sR[2]+weightMatrix[1][2]);
-
                     unknown_vectorLeft.add(sL[0]+weightMatrix[2][0]);
                     unknown_vectorLeft.add(sL[1]+weightMatrix[2][1]);
                     unknown_vectorLeft.add(sL[2]+weightMatrix[2][2]);
-
                     unknown_vectorRight.add(sR[0]+weightMatrix[2][0]);
                     unknown_vectorRight.add(sR[1]+weightMatrix[2][1]);
                     unknown_vectorRight.add(sR[2]+weightMatrix[2][2]);
-
                     double[] S = new double[3];
                     S[0] = ((Collections.min(low_vectorLeft) + Collections.min(low_vectorRight)));
                     S[1] = ((Collections.min(high_vectorLeft) + Collections.min(high_vectorRight)));
                     S[2] = ((Collections.min(unknown_vectorLeft) + Collections.min(unknown_vectorRight)));
-
                     PS.add(S);
-                    //System.out.println("updated Scores: " + parent.getName() + " " + " " + Arrays.toString(S));
+                    System.out.println("Updated Scores " + node.getName() + " "+"Characterstate "+(k+1) + ": " + Arrays.toString(S));
 
                 }
-                parent.setParsimonyScores(PS);
-            }
+                node.setParsimonyScores(PS);
+           // }
         }
     }
 
