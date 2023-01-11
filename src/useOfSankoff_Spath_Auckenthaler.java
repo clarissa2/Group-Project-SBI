@@ -129,13 +129,42 @@ public class useOfSankoff_Spath_Auckenthaler {
                     topDown(g,node,pScores,st);
                 }
             }
+            //Get Sets
+            for (Node node:list){
+                if(node.getLowchange().isEmpty()==false){
+                    System.out.println("Nodechange low--> high "+(node.getLowchange()));
+                    printChanges(node.getLowchange(),node);
+
+                }
+                if(node.getHighchange().isEmpty()==false){
+                    System.out.println("Nodechange high--> low "+node.getHighchange());
+                    printChanges(node.getHighchange(),node);
+
+                }
+            }
+
+            //clean up for new state values
+            for (Node node:list){
+                List<Node>x= new ArrayList<Node>();
+                node.setHighchange(x);
+                node.setLowchange(new ArrayList<Node>());
+            }
+
             st+=1;
         }
 
+
+    }
+
+
+    public static void printChanges(List<Node> nodes,Node parent){
+        for(Node node:nodes){
+            System.out.print(parent.getName()+" --> ");
+            System.out.print(node.getName());
+            System.out.println();
+        }
     }
     public static void topDown( List<Integer> g, Node node, double[] pScores, int st){
-        List<Node[]>changesInStatesLowHigh= new ArrayList<>() ;
-        List<Node []>changesInStatesHighlow= new ArrayList<>();
         Double inf = Double.POSITIVE_INFINITY;
         double checkScore;
         Node childLeft= node.getLeftChild();
@@ -171,17 +200,21 @@ public class useOfSankoff_Spath_Auckenthaler {
                             if (index==0){
                                 if(l==1){
                                     System.out.println("Low to high "+index+" "+node.getName()+l+" "+childLeft.getName());
+                                    node.addLowchange(childLeft);
                                 }
                                 else if(k==1){
                                     System.out.println("Low to high "+index+" "+node.getName()+" "+k+" "+childRight.getName());
+                                    node.addLowchange(childRight);
                                 }
                             }
                             if (index==1){
                                 if(l==0){
                                     System.out.println("high to low "+index+" "+node.getName()+l+" "+childLeft.getName());
+                                    node.addHighchange(childLeft);
                                 }
                                 else if(k==0){
                                     System.out.println("high to low "+index+" "+node.getName()+" "+k+" "+childRight.getName());
+                                    node.addHighchange(childRight);
                                 }
                             }
                         }
@@ -195,8 +228,6 @@ public class useOfSankoff_Spath_Auckenthaler {
                         else if(checkScore== S_left[l]+S_right[k]+2){
                             System.out.println("NO CHANGE IN STATES");
                             System.out.println("Node: " + node.getName() + " can be derived by: " + childLeft.getName() + " Score left= " + S_left[l] + " index left: " + l + " " + childRight.getName() + " Score right= " + S_right[k] + " index right: " + k);
-
-
                         }
                     }
                     else{
