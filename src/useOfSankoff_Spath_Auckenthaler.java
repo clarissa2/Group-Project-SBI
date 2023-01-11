@@ -51,7 +51,7 @@ public class useOfSankoff_Spath_Auckenthaler {
 
         System.out.println("NewickTree:"+newick);
 
-        //make tree
+        //1. Step make tree
         //NEED TO BE CREATED BY NEWICK
         Node X = new Node(0);
         Node Pallas = new Node(1);
@@ -85,7 +85,7 @@ public class useOfSankoff_Spath_Auckenthaler {
         Jaguarundi.setParent(Z);
         Jaguarundi.setCharacterStates(characters_dic);
 
-        //create top down and bottom up orderd Lists of Nodes
+        //2. Step create top down and bottom up orderd Lists of Nodes
         List<Node> list =new ArrayList<>();
         list= X.traversePreOrder(X,list);
         List<Node> newlist =new ArrayList<>();
@@ -94,13 +94,122 @@ public class useOfSankoff_Spath_Auckenthaler {
 
         //new List of parent Nodes
         List<Node> parents = new ArrayList<>();
-        //initalise states
+
+        //3. Step initalise states
         parents = initScores(newlist,states,characters_dic);
         //Update states of Parent states
         updateScores(parents,weightMatrix);
 
-        //implement top-down phase of Sankoff's
+        //4. Step implement top-down phase and expand it to get set of state-chages.
+        //combinations of each possible choice of state for each internal node as elements of a Cartesian product
+        System.out.println("Changes for i-->j states eg. low--> high");
+        double[] p =X.getParsimonyScoresAtIndex(0);
 
+        double[] pScores;
+        double checkScore;
+
+
+        List<Integer> g = new ArrayList<Integer>();
+        Node root= list.get(0);
+        int st = 0;
+
+        for(int i=0; i<root.getParsimonyScores().size(); i++){
+            System.out.println("State: "+st);
+            boolean first = true;
+            pScores = root.getParsimonyScoresAtIndex(i);
+            g = indexOfMin(pScores);
+            for (Node node:list){
+                if(first&& node.getLeftChild() != null && node.getRightChild() != null){
+                    topDown(g,node,pScores,st);
+                    first= false;
+                }
+                else if (node.getLeftChild() != null && node.getRightChild() != null){
+                    pScores= node.getParsimonyScoresAtIndex(st);
+                    g = indexOfMin(pScores);
+                    topDown(g,node,pScores,st);
+                }
+            }
+            st+=1;
+        }
+
+    }
+    public static void topDown( List<Integer> g, Node node, double[] pScores, int st){
+        List<Node[]>changesInStatesLowHigh= new ArrayList<>() ;
+        List<Node []>changesInStatesHighlow= new ArrayList<>();
+        Double inf = Double.POSITIVE_INFINITY;
+        double checkScore;
+        Node childLeft= node.getLeftChild();
+        System.out.println("Left child: " + childLeft.getName());
+        Node childRight= node.getRightChild();
+        System.out.println("Right child: " + childRight.getName());
+        double[] S_left= childLeft.getParsimonyScoresAtIndex(st);
+        System.out.println("S_left:"+Arrays.toString(S_left));
+        double[] S_right= childRight.getParsimonyScoresAtIndex(st);
+        System.out.println("S_right:"+Arrays.toString(S_right));
+
+        List<Integer> possibles_left = new ArrayList<Integer>();
+        List<Integer> possibles_right = new ArrayList<Integer>();
+        for (int i=0; i<S_left.length; i++) {
+            if(S_left[i]!= inf){
+                possibles_left.add(i);
+            }
+            if(S_right[i]!= inf){
+                possibles_right.add(i);
+            }
+        }
+
+        for(int j = 0; j<g.size(); j++){
+            int index= g.get(j);
+            checkScore=pScores[index];
+            System.out.println("Checkscore: "+checkScore+" at index "+index);
+            for(int l :possibles_left){
+                for (int k:possibles_right){
+                    if(index!=l || index!=k){
+                        if(checkScore== S_left[l]+S_right[k]+1){
+                            System.out.println("CHANGE IN STATES");
+                            System.out.println("Node: "+ node.getName()+" can be derived by: "+childLeft.getName()+ " Score left= "+S_left[l]+" index left: "+l+" "+childRight.getName()+" Score right= "+S_right[k]+" index right: "+k);
+                            if (index==0){
+                                if(l==1){
+                                    System.out.println("Low to high "+index+" "+node.getName()+l+" "+childLeft.getName());
+                                }
+                                else if(k==1){
+                                    System.out.println("Low to high "+index+" "+node.getName()+" "+k+" "+childRight.getName());
+                                }
+                            }
+                            if (index==1){
+                                if(l==0){
+                                    System.out.println("high to low "+index+" "+node.getName()+l+" "+childLeft.getName());
+                                }
+                                else if(k==0){
+                                    System.out.println("high to low "+index+" "+node.getName()+" "+k+" "+childRight.getName());
+                                }
+                            }
+                        }
+                    }
+                    else if(l==k){
+
+                        if(checkScore== S_left[l]+S_right[k]) {
+                            System.out.println("NO CHANGE IN STATES");
+                            System.out.println("Node: " + node.getName() + " can be derived by: " + childLeft.getName() + " Score left= " + S_left[l] + " index left: " + l + " " + childRight.getName() + " Score right= " + S_right[k] + " index right: " + k);
+                        }
+                        else if(checkScore== S_left[l]+S_right[k]+2){
+                            System.out.println("NO CHANGE IN STATES");
+                            System.out.println("Node: " + node.getName() + " can be derived by: " + childLeft.getName() + " Score left= " + S_left[l] + " index left: " + l + " " + childRight.getName() + " Score right= " + S_right[k] + " index right: " + k);
+
+
+                        }
+                    }
+                    else{
+                        if(checkScore== S_left[l]+S_right[k]+1){
+                            System.out.println("CHANGE IN STATES");
+                            System.out.println("Node: "+ node.getName()+" can be derived by: "+childLeft.getName()+ " Score left= "+S_left[l]+" index left: "+l+" "+childRight.getName()+" Score right= "+S_right[k]+" index right: "+k);
+                        }
+                    }
+                }
+            }
+            System.out.println();
+
+        }
     }
 
 
@@ -118,6 +227,7 @@ public class useOfSankoff_Spath_Auckenthaler {
         double jc = intersection/unions;
         return jc;
     }
+
     public static List<Node> reverseOrder(List<Node>list){
         List<Node> newList = new ArrayList<>();
         for (int i = list.size()-1; i >= 0; i--) {
@@ -208,6 +318,46 @@ public class useOfSankoff_Spath_Auckenthaler {
            // }
         }
     }
+    //helper function to get minimum score in array
+    public static double minimum(double [] array) {
+        double min = array[0];
 
+        for (int i = 0; i < array.length; i++) {
+            if (array[i] < min) {
+                min = array[i];
+            }
+        }
+        return min;
+    }
+
+    public static List<Integer> indexOfMin(double[] array){
+        List<Integer> listOfMin = new ArrayList<Integer>();
+        int index =0;
+        double min = array[index];
+        boolean first = true;
+
+        for (int i = 1; i < array.length; i++){
+            if (first= true){
+                if (array[i] <= min){
+                    listOfMin.add(index,index);
+                    first= false;
+                }
+            }
+            if (array[i] <= min){
+                min = array[i];
+                index = i;
+                listOfMin.add(index,index);
+            }
+        }
+        return listOfMin;
+    }
+
+    //helper function to get absolute value in array
+    public static double[] absolut(double[] array) {
+        for (int i = 0; i < array.length; i++) {
+            array[i] = Math.abs(array[i]);
+        }
+        return array;
+    }
 
 }
