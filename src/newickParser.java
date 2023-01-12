@@ -2,13 +2,20 @@ import java.util.*;
 
 public class newickParser {
     public static void main(String[] args) {
-        Node test = parseNewick("(((Jaguarundi,Puma),Cheetah),Pallas)");
-        System.out.println(test.getName());
-        List<Node> list =new ArrayList<>();
-        list= test.traversePreOrder(test,list);
-        for (Node x : list) {
-            System.out.println(x.getName());
+        Node root = parseNewick("(((Jaguarundi,Puma),Cheetah),Pallas)");
+
+        printTree(root);
+    }
+    public static void printTree(Node root) {
+        if (root.getLeftChild() != null) {
+            System.out.println("node: " + root.getName());
+            System.out.println("left child: " + root.getLeftChild().getName());
+            System.out.println("right child: " + root.getRightChild().getName() + "\n");
+            printTree(root.getLeftChild());
+            printTree(root.getRightChild());
         }
+
+
     }
 
     public static Node parseNewick(String newick) {
