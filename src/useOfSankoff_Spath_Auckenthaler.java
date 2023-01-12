@@ -21,7 +21,7 @@ public class useOfSankoff_Spath_Auckenthaler {
 
 
         //set values
-        String newick = "(((Jaguarundi,Puma), Cheetah), Pallas)";
+        String newick = "(((Jaguarundi,Puma),Cheetah),Pallas)";
         newick= newick.replace(" ","");
         //sort of dollo-cost Matrix for 3 states
         double [][]weightMatrix = new double[][]{{0, 1, 1}, {1, 0, 1}, {inf, inf, 0}};
@@ -50,18 +50,22 @@ public class useOfSankoff_Spath_Auckenthaler {
 
         System.out.println("NewickTree:"+newick);
 
+        // this start is the root node
+        Node start = parseNewick(newick, characters_dic);
+
         //1. Step make tree
         //NEED TO BE CREATED BY NEWICK
-        Node X = new Node("X");
+       /* Node X = new Node("X");
         Node Pallas = new Node("Pallas");
         Node Y = new Node("Y");
         Node Cheetah = new Node ("Cheetah");
         Node Z= new Node("Z");
         Node Jaguarundi= new Node("Jaguarundi");
-        Node Puma= new Node("Puma");
+        Node Puma= new Node("Puma");*/
 
 
-        X.addChild(Pallas);
+
+        /*X.addChild(Pallas);
         X.addChild(Y);
         Pallas.setParent(X);
         Pallas.setCharacterStates(characters_dic);
@@ -76,11 +80,11 @@ public class useOfSankoff_Spath_Auckenthaler {
         Puma.setParent(Z);
         Puma.setCharacterStates(characters_dic);
         Jaguarundi.setParent(Z);
-        Jaguarundi.setCharacterStates(characters_dic);
+        Jaguarundi.setCharacterStates(characters_dic);*/
 
         //2. Step create top down and bottom up ordered Lists of Nodes
         List<Node> list =new ArrayList<>();
-        list= X.traversePreOrder(X,list);
+        list= start.traversePreOrder(start,list);
         List<Node> newlist =new ArrayList<>();
         newlist= reverseOrder(list);
 
@@ -300,7 +304,7 @@ public class useOfSankoff_Spath_Auckenthaler {
                 Node childLeft = node.getLeftChild();
                 Node childRight = node.getRightChild();
                 ArrayList<double[]> PS = new ArrayList<double[]>();
-                for (int k = 0; k < childLeft.getCharacterStates().length; k++) {
+                for (int k = 0; k < childRight.getCharacterStates().length; k++) {
                     double[] sL = childLeft.getParsimonyScoresAtIndex(k);
                     double[] sR = childRight.getParsimonyScoresAtIndex(k);
                     ArrayList<Double> low_vectorLeft = new ArrayList<Double>();
@@ -370,6 +374,60 @@ public class useOfSankoff_Spath_Auckenthaler {
         for (int i = 0; i < array.length; i++) {
             array[i] = Math.abs(array[i]);}
         return array;
+    }
+
+
+    public static Node parseNewick(String newick, Dictionary<String, String[]> characters_dic) {
+        // Use a stack to keep track of the nodes as we build the tree
+        Stack<Node> stack = new Stack<>();
+
+        // Initialize some variables to keep track of the current node and its properties
+        Node current = null;
+        Node root = null;
+        int ascii = 90;
+
+        // Loop through the characters in the Newick string
+        for (int i = 0; i < newick.length(); i++) {
+            char c = newick.charAt(i);
+
+            // If the character is an opening parenthesis, create a new node and push it onto the stack
+            if (c == '(') {
+                current = new Node(Character.toString((char) ascii));
+                ascii--;
+                if (!stack.isEmpty()) {
+                    stack.peek().addChild(current);
+                }
+                stack.push(current);
+
+            }
+            // If the character is a comma continue with the loop
+            else if (c == ',') {
+                continue;
+            }
+            // If the character is a closing parenthesis pop node from stack
+            else if (c == ')') {
+                i++;
+                stack.pop();
+            }
+            else if (Character.isLetterOrDigit(c)) { // if any other character is encountered create new node (leaf)
+                String name = "";
+                while (Character.isLetterOrDigit(newick.charAt(i))) {
+                    name += newick.charAt(i);
+                    i++;
+                }
+                i--;
+                current = new Node(name);
+                current.setCharacterStates(characters_dic);
+                stack.peek().addChild(current);
+            }
+            if (!stack.isEmpty()) {
+                root = stack.peek();
+            }
+
+        }
+
+        // The last node on the stack should be the root of the tree
+        return root;
     }
 
 }
