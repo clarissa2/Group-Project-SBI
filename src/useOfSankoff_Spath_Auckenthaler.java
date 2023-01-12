@@ -52,35 +52,35 @@ public class useOfSankoff_Spath_Auckenthaler {
 
         //1. Step make tree
         //NEED TO BE CREATED BY NEWICK
-        Node X = new Node(0);
-        Node Pallas = new Node(1);
-        Node Y = new Node(2);
-        Node Cheetah = new Node (3);
-        Node Z= new Node(4);
-        Node Jaguarundi= new Node(5);
-        Node Puma= new Node(6);
+        Node X = new Node("X");
+        Node Pallas = new Node("Pallas");
+        Node Y = new Node("Y");
+        Node Cheetah = new Node ("Cheetah");
+        Node Z= new Node("Z");
+        Node Jaguarundi= new Node("Jaguarundi");
+        Node Puma= new Node("Puma");
 
-        X.setName("X");
+
         X.addChild(Pallas);
         X.addChild(Y);
-        Pallas.setName("Pallas");
+
         Pallas.setParent(X);
         Pallas.setCharacterStates(characters_dic);
-        Y.setName("Y");
+
         Y.addChild(Cheetah);
         Y.addChild(Z);
         Y.setParent(X);
-        Cheetah.setName("Cheetah");
+
         Cheetah.setParent(Y);
         Cheetah.setCharacterStates(characters_dic);
-        Z.setName("Z");
+
         Z.setParent(Y);
         Z.addChild(Jaguarundi);
         Z.addChild(Puma);
-        Puma.setName("Puma");
+
         Puma.setParent(Z);
         Puma.setCharacterStates(characters_dic);
-        Jaguarundi.setName("Jaguarundi");
+
         Jaguarundi.setParent(Z);
         Jaguarundi.setCharacterStates(characters_dic);
 
@@ -212,26 +212,22 @@ public class useOfSankoff_Spath_Auckenthaler {
                             if (index==0){
                                 if(l==1){
                                     //System.out.println("Low to high "+index+" "+node.getName()+" "+l+" "+childLeft.getName());
-                                    node.addLowchange(childLeft);
                                     node.setlChange(childLeft);
                                     x= getChange(node,true);
                                     changePos0.add(x);}
                                 else if(k==1){
                                     //System.out.println("Low to high "+index+" "+node.getName()+" "+k+" "+childRight.getName());
-                                    node.addLowchange(childRight);
                                     node.setrChange(childRight);
                                     x= getChange(node,false);
                                     changePos0.add(x);}}
                             if (index==1){
                                 if(l==0){
                                     //System.out.println("high to low "+index+" "+node.getName()+" "+l+" "+childLeft.getName());
-                                    node.addHighchange(childLeft);
                                     node.setlChange(childLeft);
                                     x= getChange(node,true);
                                     changePos1.add(x);}
                                 else if(k==0){
                                     //System.out.println("high to low "+index+" "+node.getName()+" "+k+" "+childRight.getName());
-                                    node.addHighchange(childRight);
                                     node.setrChange(childRight);
                                     x= getChange(node,false);
                                     changePos1.add(x);}

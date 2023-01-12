@@ -4,7 +4,6 @@ public class Node {
     private Node left;
     private Node right;
     private Node parent;
-    private final int nodeID;
     private String name;
     private String[] characterStates;
     private ArrayList<double[]> parsimonyScores;
@@ -13,12 +12,12 @@ public class Node {
     private List<Node> lowchange= new ArrayList<Node>();
     private List<Node> highchange= new ArrayList<Node>();
 
-    public Node(int nodeID) {
-        this.nodeID = nodeID;
+    public Node(String name) {
+        //this.nodeID = nodeID;
         this.left = null;
         this.right = null;
         this.parent = null;
-        this.name = "";
+        this.name = name;
         this.characterStates = null;
     }
 
@@ -92,27 +91,6 @@ public class Node {
 
     public void setParent(Node parent) {this.parent = parent;}
 
-    public int getNodeID() {return nodeID;}
-
-    public List<Node> getLowchange() {
-        return lowchange;
-    }
-    public void setLowchange(List<Node> lowchange) {
-        this.lowchange = lowchange;
-    }
-
-    public void addLowchange(Node lowchange) {
-        this.lowchange.add(lowchange);
-    }
-    public List<Node> getHighchange() {
-        return highchange;
-    }
-    public void setHighchange(List<Node> highchange) {
-        this.highchange = highchange;
-    }
-    public void addHighchange(Node highchange) {
-        this.highchange.add(highchange);
-    }
 
     public List<Node>  traversePreOrder(Node node, List<Node> list) {
         if (node != null) {
