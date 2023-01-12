@@ -1,3 +1,4 @@
+
 import java.io.IOException;
 import java.util.*;
 
@@ -42,8 +43,6 @@ public class useOfSankoff_Spath_Auckenthaler {
         //read in from arguments
         if (args.length == 3) {
             newick = String.valueOf(args[0]);
-
-
         }
         else {
           //throw new IOException("Usage: useOfSankoff_Spath_Auckenthaler newick, matrix");
@@ -113,47 +112,62 @@ public class useOfSankoff_Spath_Auckenthaler {
         Node root= list.get(0);
         int st = 0;
 
+        List<List<List<String>>> ccCh1= new ArrayList<>();
+        List<List<List<String>>> ccCh2= new ArrayList<>();
+        HashSet<List<String>> c0= new HashSet<>();
+        HashSet<List<String>> c1= new HashSet<List<String>>();
+
         for(int i=0; i<root.getParsimonyScores().size(); i++){
-            System.out.println("State: "+st);
+            System.out.println("Character (0== weight; 1 ==dental): "+st);
             boolean first = true;
             pScores = root.getParsimonyScoresAtIndex(i);
             g = indexOfMin(pScores);
+            List<String>changePos0 = new ArrayList<>();
+            List<String>changePos1 = new ArrayList<>();
             for (Node node:list){
                 if(first&& node.getLeftChild() != null && node.getRightChild() != null){
-                    topDown(g,node,pScores,st);
+                    if(i==0){
+                        c0=topDown(g,node,pScores,st,changePos0,changePos1);
+                        System.out.println("c0, i=0: "+c0);
+                    }
+                    else if (i==1){
+                        c1=topDown(g,node,pScores,st,changePos0,changePos1);
+                        System.out.println("c1, i=0: "+c1);
+                    }
                     first= false;
+
                 }
                 else if (node.getLeftChild() != null && node.getRightChild() != null){
                     pScores= node.getParsimonyScoresAtIndex(st);
                     g = indexOfMin(pScores);
-                    topDown(g,node,pScores,st);
+                    if(i==0){
+                        c0= topDown(g,node,pScores,st,changePos0,changePos1);
+                        System.out.println("c0, i=1: "+c0);
+                    }
+                    else if (i==1){
+                        c1= topDown(g,node,pScores,st,changePos0,changePos1);
+                        System.out.println("c1, i=1: "+c1);
+                    }
                 }
             }
-            //Get Sets
-            for (Node node:list){
-                if(node.getLowchange().isEmpty()==false){
-                    System.out.println("Nodechange low--> high "+(node.getLowchange()));
-                    printChanges(node.getLowchange(),node);
+            HashSet<HashSet<List<String>>> uniqueValuesC0= new HashSet<>();
+            HashSet<HashSet<List<String>>> uniqueValuesC1= new HashSet<>();
+            uniqueValuesC0.add(c0);
+            uniqueValuesC1.add(c1);
 
-                }
-                if(node.getHighchange().isEmpty()==false){
-                    System.out.println("Nodechange high--> low "+node.getHighchange());
-                    printChanges(node.getHighchange(),node);
-
-                }
-            }
-
-            //clean up for new state values
-            for (Node node:list){
-                List<Node>x= new ArrayList<Node>();
-                node.setHighchange(x);
-                node.setLowchange(new ArrayList<Node>());
-            }
+            //ccCh1.add(c0);
+            //ccCh2.add(c1);
+            System.out.println("Character weight state changes: "+ uniqueValuesC0);
+            System.out.println("Character dental state changes: "+uniqueValuesC1);
 
             st+=1;
         }
 
+        //System.out.println("Test S1: ");
+        //System.out.println("Test S2: "+changesS2);
 
+        // Test S1: [[X --> Y], [Y --> Cheetah, Y --> Cheetah], [Z --> Puma], [X --> Y, X --> Pallas]]
+        // Test S2: [[X --> Pallas], [Z --> Jaguarundi], [X --> Y, X --> Pallas]]
     }
 
 
@@ -162,19 +176,55 @@ public class useOfSankoff_Spath_Auckenthaler {
             System.out.print(parent.getName()+" --> ");
             System.out.print(node.getName());
             System.out.println();
+
+            StringBuilder sb = new StringBuilder(parent.getName());
+            sb.append(" --> ");
+            sb.append(node.getName());
         }
     }
-    public static void topDown( List<Integer> g, Node node, double[] pScores, int st){
+
+
+    public static List<String> getChanges(List<Node>nodes,Node parent){
+        List<String>changes = new ArrayList<>();
+        for(Node node:nodes){
+            StringBuilder sb = new StringBuilder(parent.getName());
+            sb.append(" --> ");
+            sb.append(node.getName());
+            changes.add(sb.toString());
+        }
+        return changes;
+    }
+
+    public static String getChange(Node node,boolean low){
+        String changes;
+        StringBuilder sb = new StringBuilder(node.getName());
+        sb.append(" --> ");
+        Node x;
+        if(low){
+            x=node.getlChange();
+            sb.append(x.getName());
+            changes= (sb.toString());
+        }
+        else{
+           x=node.getrChange();
+           sb.append(x.getName());
+           changes= (sb.toString());
+        }
+        return changes;
+    }
+
+
+    public static HashSet<List<String>> topDown(List<Integer> g, Node node, double[] pScores, int st,List<String>changePos0,List<String>changePos1){
         Double inf = Double.POSITIVE_INFINITY;
         double checkScore;
         Node childLeft= node.getLeftChild();
-        System.out.println("Left child: " + childLeft.getName());
+        //System.out.println("Left child: " + childLeft.getName());
         Node childRight= node.getRightChild();
-        System.out.println("Right child: " + childRight.getName());
+        //System.out.println("Right child: " + childRight.getName());
         double[] S_left= childLeft.getParsimonyScoresAtIndex(st);
-        System.out.println("S_left:"+Arrays.toString(S_left));
+        //System.out.println("S_left:"+Arrays.toString(S_left));
         double[] S_right= childRight.getParsimonyScoresAtIndex(st);
-        System.out.println("S_right:"+Arrays.toString(S_right));
+        //System.out.println("S_right:"+Arrays.toString(S_right));
 
         List<Integer> possibles_left = new ArrayList<Integer>();
         List<Integer> possibles_right = new ArrayList<Integer>();
@@ -186,9 +236,16 @@ public class useOfSankoff_Spath_Auckenthaler {
                 possibles_right.add(i);
             }
         }
-
+        //System.out.println("possibles_left:"+possibles_left);
+        //System.out.println("possibles_right:"+possibles_right);
+        //List<List<String>> ccChangeS1=new ArrayList<List<String>>();
+        //List<List<String>> ccChangeS2=new ArrayList<List<String>>();
+        //List<List<List<String>>> cc= new ArrayList<List<List<String>>>();
+        String x="";
+        HashSet<List<String>> c= new HashSet<>();
         for(int j = 0; j<g.size(); j++){
             int index= g.get(j);
+
             checkScore=pScores[index];
             System.out.println("Checkscore: "+checkScore+" at index "+index);
             for(int l :possibles_left){
@@ -199,48 +256,59 @@ public class useOfSankoff_Spath_Auckenthaler {
                             System.out.println("Node: "+ node.getName()+" can be derived by: "+childLeft.getName()+ " Score left= "+S_left[l]+" index left: "+l+" "+childRight.getName()+" Score right= "+S_right[k]+" index right: "+k);
                             if (index==0){
                                 if(l==1){
-                                    System.out.println("Low to high "+index+" "+node.getName()+l+" "+childLeft.getName());
+                                    System.out.println("Low to high "+index+" "+node.getName()+" "+l+" "+childLeft.getName());
                                     node.addLowchange(childLeft);
+                                    node.setlChange(childLeft);
+                                    x= getChange(node,true);
+                                    changePos0.add(x);
                                 }
                                 else if(k==1){
                                     System.out.println("Low to high "+index+" "+node.getName()+" "+k+" "+childRight.getName());
                                     node.addLowchange(childRight);
+                                    node.setrChange(childRight);
+                                    x= getChange(node,false);
+                                    changePos0.add(x);
                                 }
+
                             }
+
                             if (index==1){
                                 if(l==0){
                                     System.out.println("high to low "+index+" "+node.getName()+l+" "+childLeft.getName());
                                     node.addHighchange(childLeft);
+                                    node.setlChange(childLeft);
+                                    x= getChange(node,true);
+                                    changePos1.add(x);
                                 }
                                 else if(k==0){
                                     System.out.println("high to low "+index+" "+node.getName()+" "+k+" "+childRight.getName());
                                     node.addHighchange(childRight);
+                                    node.setrChange(childRight);
+                                    x= getChange(node,false);
+                                    changePos1.add(x);
                                 }
                             }
                         }
                     }
-                    else if(l==k){
 
+                    else if(l==k){
                         if(checkScore== S_left[l]+S_right[k]) {
                             System.out.println("NO CHANGE IN STATES");
-                            System.out.println("Node: " + node.getName() + " can be derived by: " + childLeft.getName() + " Score left= " + S_left[l] + " index left: " + l + " " + childRight.getName() + " Score right= " + S_right[k] + " index right: " + k);
+                            //System.out.println("Node: " + node.getName() + " can be derived by: " + childLeft.getName() + " Score left= " + S_left[l] + " index left: " + l + " " + childRight.getName() + " Score right= " + S_right[k] + " index right: " + k);
                         }
                         else if(checkScore== S_left[l]+S_right[k]+2){
                             System.out.println("NO CHANGE IN STATES");
-                            System.out.println("Node: " + node.getName() + " can be derived by: " + childLeft.getName() + " Score left= " + S_left[l] + " index left: " + l + " " + childRight.getName() + " Score right= " + S_right[k] + " index right: " + k);
-                        }
-                    }
-                    else{
-                        if(checkScore== S_left[l]+S_right[k]+1){
-                            System.out.println("CHANGE IN STATES");
-                            System.out.println("Node: "+ node.getName()+" can be derived by: "+childLeft.getName()+ " Score left= "+S_left[l]+" index left: "+l+" "+childRight.getName()+" Score right= "+S_right[k]+" index right: "+k);
+                            //System.out.println("Node: " + node.getName() + " can be derived by: " + childLeft.getName() + " Score left= " + S_left[l] + " index left: " + l + " " + childRight.getName() + " Score right= " + S_right[k] + " index right: " + k);
                         }
                     }
                 }
             }
-            System.out.println();
+
+            c.add(changePos0);
+            c.add(changePos1);
 
         }
+        return c;
     }
 
 
