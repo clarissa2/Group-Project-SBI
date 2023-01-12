@@ -21,7 +21,7 @@ public class useOfSankoff_Spath_Auckenthaler {
 
 
         //set values
-        String newick = "((Jaguarundi,Puma), Cheetah), Pallas))";
+        String newick = "(((Jaguarundi,Puma), Cheetah), Pallas)";
         newick= newick.replace(" ","");
         //sort of dollo-cost Matrix for 3 states
         double [][]weightMatrix = new double[][]{{0, 1, 1}, {1, 0, 1}, {inf, inf, 0}};
@@ -63,32 +63,27 @@ public class useOfSankoff_Spath_Auckenthaler {
 
         X.addChild(Pallas);
         X.addChild(Y);
-
         Pallas.setParent(X);
         Pallas.setCharacterStates(characters_dic);
-
         Y.addChild(Cheetah);
         Y.addChild(Z);
         Y.setParent(X);
-
         Cheetah.setParent(Y);
         Cheetah.setCharacterStates(characters_dic);
-
         Z.setParent(Y);
         Z.addChild(Jaguarundi);
         Z.addChild(Puma);
-
         Puma.setParent(Z);
         Puma.setCharacterStates(characters_dic);
-
         Jaguarundi.setParent(Z);
         Jaguarundi.setCharacterStates(characters_dic);
 
-        //2. Step create top down and bottom up orderd Lists of Nodes
+        //2. Step create top down and bottom up ordered Lists of Nodes
         List<Node> list =new ArrayList<>();
         list= X.traversePreOrder(X,list);
         List<Node> newlist =new ArrayList<>();
         newlist= reverseOrder(list);
+
 
         //new List of parent Nodes
         List<Node> parents = new ArrayList<>();
@@ -149,13 +144,17 @@ public class useOfSankoff_Spath_Auckenthaler {
         }
         // get final sets for further processing
         //eg. weight characteristic
-       uniqueValuesC0.forEach(unique -> {unique.forEach(uniqueVal ->{finalSetsC1.add(uniqueVal);});});
+        uniqueValuesC0.forEach(unique -> {unique.forEach(uniqueVal ->{finalSetsC1.add(uniqueVal);});});
         //eg Dental characteristic
         uniqueValuesC1.forEach(unique -> {unique.forEach(uniqueVal ->{finalSetsC2.add(uniqueVal);});});
         System.out.println("Characteristic alpha state changes(i-->j): ");
         System.out.println(finalSetsC1);
         System.out.println("Characteristic beta state changes(i'-->j'): ");
         System.out.println(finalSetsC2);
+
+        finalSetsC1.forEach(e->{
+
+        });
     }
 
     public static String getChange(Node node,boolean low){
@@ -182,21 +181,16 @@ public class useOfSankoff_Spath_Auckenthaler {
         double checkScore;
         Node childLeft= node.getLeftChild();
         Node childRight= node.getRightChild();
-
         double[] S_left= childLeft.getParsimonyScoresAtIndex(st);
         double[] S_right= childRight.getParsimonyScoresAtIndex(st);
-
         List<Integer> possibles_left = new ArrayList<Integer>();
         List<Integer> possibles_right = new ArrayList<Integer>();
         for (int i=0; i<S_left.length; i++) {
             if(S_left[i]!= inf){
-                possibles_left.add(i);
-            }
+                possibles_left.add(i);}
             if(S_right[i]!= inf){
-                possibles_right.add(i);
-            }
+                possibles_right.add(i);}
         }
-
         String x="";
         HashSet<List<String>> c= new HashSet<>();
         for(int j = 0; j<g.size(); j++){
@@ -234,34 +228,27 @@ public class useOfSankoff_Spath_Auckenthaler {
                             }
                         }
                     }
-
                     else if(l==k){
-                        if(checkScore== S_left[l]+S_right[k]) {
-                            //System.out.println("NO CHANGE IN STATES");
-                        }
-                        else if(checkScore== S_left[l]+S_right[k]+2){
-                            //System.out.println("NO CHANGE IN STATES");
-                        }
+                        if(checkScore== S_left[l]+S_right[k]) {//System.out.println("NO CHANGE IN STATES");
+                            }
+                        else if(checkScore== S_left[l]+S_right[k]+2){//System.out.println("NO CHANGE IN STATES");
+                            }
                     }
                 }
             }
-
             c.add(changePos0);
             c.add(changePos1);
-
         }
         return c;
     }
 
 
-    public static double computeJaccardIndex( SortedSet<Integer> A, SortedSet<Integer> B) {
+    public static double computeJaccardIndex( SortedSet<String> A, SortedSet<String> B) {
         // from assignment07 Sequence Bioinfromatics
-        Set<Integer> union = new HashSet<>(A);
-        Set<Integer> intersect = new HashSet<>(A);
-
+        Set<String> union = new HashSet<>(A);
+        Set<String> intersect = new HashSet<>(A);
         union.addAll(B);
         intersect.retainAll(B);
-
         intersect.retainAll(union);
         double unions = union.size();
         double intersection = intersect.size();
@@ -289,15 +276,10 @@ public class useOfSankoff_Spath_Auckenthaler {
                     String [] cStates= states[i];
                     double [] scores = new double[cStates.length];
                     for(int j=0; j<cStates.length; j++){
-                        if(animalStates[i].equals(cStates[j])){
-                            scores[j] = 0;
-                        }
-                        else{
-                            scores[j]= inf;
-                        }
+                        if(animalStates[i].equals(cStates[j])){scores[j] = 0;}
+                        else{scores[j]= inf;}
                     }
                     sc.add(scores);
-
                     System.out.println("Initialisation-Scores " + node.getName()+" Characterstate "+(i+1)+": "+ Arrays.toString(scores));
                 }
                 node.setParsimonyScores(sc);
@@ -309,17 +291,15 @@ public class useOfSankoff_Spath_Auckenthaler {
         return parentsList;
     }
 
+    //get parsimonial scores for each internal node
     public static void updateScores(List<Node>newlist, double [][]weightMatrix){
         /**
-         * Update the scores, using Sankoffs small parsimoies algorithm
+         * Update the scores in bottom up phase of Sankoffs small parsimoies algorithm
          */
         for(Node node:newlist){
-            //if (node.getParent()!= null) {
-                //Node parent = node.getParent();
                 Node childLeft = node.getLeftChild();
                 Node childRight = node.getRightChild();
                 ArrayList<double[]> PS = new ArrayList<double[]>();
-
                 for (int k = 0; k < childLeft.getCharacterStates().length; k++) {
                     double[] sL = childLeft.getParsimonyScoresAtIndex(k);
                     double[] sR = childRight.getParsimonyScoresAtIndex(k);
@@ -353,51 +333,42 @@ public class useOfSankoff_Spath_Auckenthaler {
                     S[2] = ((Collections.min(unknown_vectorLeft) + Collections.min(unknown_vectorRight)));
                     PS.add(S);
                     System.out.println("Updated Scores " + node.getName() + " "+"Characterstate "+(k+1) + ": " + Arrays.toString(S));
-
                 }
                 node.setParsimonyScores(PS);
-           // }
         }
     }
+
     //helper function to get minimum score in array
     public static double minimum(double [] array) {
         double min = array[0];
-
         for (int i = 0; i < array.length; i++) {
             if (array[i] < min) {
-                min = array[i];
-            }
+                min = array[i];}
         }
         return min;
     }
-
+    //helper function to get indices of minimum score in array
     public static List<Integer> indexOfMin(double[] array){
         List<Integer> listOfMin = new ArrayList<Integer>();
         int index =0;
         double min = array[index];
         boolean first = true;
-
         for (int i = 1; i < array.length; i++){
             if (first= true){
                 if (array[i] <= min){
                     listOfMin.add(index,index);
-                    first= false;
-                }
-            }
+                    first= false;}}
             if (array[i] <= min){
                 min = array[i];
                 index = i;
-                listOfMin.add(index,index);
-            }
-        }
+                listOfMin.add(index,index);}}
         return listOfMin;
     }
 
     //helper function to get absolute value in array
     public static double[] absolut(double[] array) {
         for (int i = 0; i < array.length; i++) {
-            array[i] = Math.abs(array[i]);
-        }
+            array[i] = Math.abs(array[i]);}
         return array;
     }
 
