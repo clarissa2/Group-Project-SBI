@@ -1,6 +1,7 @@
 
 import java.io.IOException;
 import java.util.*;
+import java.io.*;
 
 /**
  * Project implementation for different uses of sankoff
@@ -27,8 +28,10 @@ public class useOfSankoff_Spath_Auckenthaler {
         double [][]weightMatrix = new double[][]{{0, 1, 1}, {1, 0, 1}, {inf, inf, 0}};
 
         //create dictionary of animals and their states
-        Dictionary<String, String[]> characters_dic = new Hashtable<String, String[]>();
-        String[] puma= new String[] {"high","30"};
+        Dictionary<String, String[]> characters_dic = read_data("test_data.csv");
+
+
+        /*String[] puma= new String[] {"high","30"};
         String[] jaguarundi= new String[] {"low","30"};
         String[] cheetah= new String[] {"high","30"};
         String[] pallas= new String[] {"low","28"};
@@ -36,7 +39,7 @@ public class useOfSankoff_Spath_Auckenthaler {
         characters_dic.put("Puma", puma);
         characters_dic.put("Jaguarundi", jaguarundi);
         characters_dic.put("Cheetah", cheetah);
-        characters_dic.put("Pallas", pallas);
+        characters_dic.put("Pallas", pallas);*/
 
         String[][] states= new String[][]{{"low","high","unknown"},{"28","30","unknown"}};
 
@@ -429,5 +432,29 @@ public class useOfSankoff_Spath_Auckenthaler {
         // The last node on the stack should be the root of the tree
         return root;
     }
+
+
+    public static Dictionary<String, String[]> read_data(String csvFile) {
+        Dictionary<String, String[]> characters_dic = new Hashtable<String, String[]>();
+        try {
+            File file = new File(csvFile);
+            FileReader fr = new FileReader(file);
+            BufferedReader br = new BufferedReader(fr);
+            String line = "";
+            String[] tempArr;
+            while((line = br.readLine()) != null) {
+                tempArr = line.split(",");
+                int end = tempArr.length;
+                characters_dic.put(tempArr[0], Arrays.copyOfRange(tempArr, 1, end));
+            }
+            br.close();
+        } catch(IOException ioe) {
+            ioe.printStackTrace();
+        }
+
+        System.out.println(characters_dic);
+        return characters_dic;
+    }
+
 
 }
