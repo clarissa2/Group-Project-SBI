@@ -63,8 +63,6 @@ public class useOfSankoff_Spath_Auckenthaler {
         Node Jaguarundi= new Node("Jaguarundi");
         Node Puma= new Node("Puma");*/
 
-
-
         /*X.addChild(Pallas);
         X.addChild(Y);
         Pallas.setParent(X);
@@ -120,7 +118,7 @@ public class useOfSankoff_Spath_Auckenthaler {
         //Only compare two characteristics with each other NOT MORE!
         //If more create array of index combinations!!!!!!!!!
         for(int i=0; i<root.getParsimonyScores().size(); i++){
-            //System.out.println("Character (0== weight; 1 ==dental): "+st);
+            System.out.println("Character (0== weight; 1 ==dental): "+st);
             boolean first = true;
             pScores = root.getParsimonyScoresAtIndex(i);
             g = indexOfMin(pScores);
@@ -146,7 +144,7 @@ public class useOfSankoff_Spath_Auckenthaler {
             //update Character
             st+=1;
         }
-        // get final sets for further processing
+        // calculate the correlation between two different characteristics
         //eg. weight characteristic
         uniqueValuesC0.forEach(unique -> {unique.forEach(uniqueVal ->{finalSetsC1.add(uniqueVal);});});
         //eg Dental characteristic
@@ -156,9 +154,238 @@ public class useOfSankoff_Spath_Auckenthaler {
         System.out.println("Characteristic beta state changes(i'-->j'): ");
         System.out.println(finalSetsC2);
 
-        finalSetsC1.forEach(e->{
 
+        //Changes for i-->j & i' -->j'
+       // Characteristic alpha state changes(i-->j):
+        //[[X --> Y, Y --> Cheetah, Y --> Cheetah, Z --> Puma], [X --> Pallas, Z --> Jaguarundi]]
+        //Characteristic beta state changes(i'-->j'):
+        //[[X --> Y], [X --> Pallas]]
+
+        List<Double> jcInd = new ArrayList();
+        finalSetsC1.forEach(e->{
+            int i = 0;
+            List<String>A= e;
+            int finalI = i;
+            finalSetsC2.forEach(x->{
+                int j= 0;
+                List<String>B=x;
+                {
+                    double jc= computeJaccardIndex(A,B);
+                    jcInd.add(jc);
+                    System.out.println(e+" "+x+" Correlation: "+jc);
+                }
+            });
         });
+       System.out.println("Jaccard indexs for all kind of changes: "+ jcInd);
+
+       System.out.println("");
+       List<Node> internalnodes= new ArrayList<Node>();
+        for(Node node:list){
+            if(node.getLeftChild()!=null && node.getRightChild()!=null){
+                internalnodes.add(node);
+            }
+        }
+        sankoffTopDown((internalnodes));
+    }
+    public static void sankoffTopDown (List<Node>internalnodes){
+        Double inf = Double.POSITIVE_INFINITY;
+        //loop over different characters to get change List for each character
+        for(int i=0; i<internalnodes.get(0).getParsimonyScores().size(); i++){
+            //parsimony scores for each internal node for one character in a list
+            List<double[]>parsimonyScores = new ArrayList<double[]>();
+            //List<Double>combScores = new ArrayList<>();
+            int[] lengths = new int[internalnodes.size()];
+            int n= 0;
+            for(Node node:internalnodes){
+                parsimonyScores.add(node.getParsimonyScoresAtIndex(i));
+                lengths[n]= node.getParsimonyScoresAtIndex(i).length;
+                n++;
+            }
+            for (int q= 0;q<parsimonyScores.size();q++){
+                System.out.println(Arrays.toString(parsimonyScores.get(q)));
+                //double[]score= parsimonyScores.get(q);
+            }
+            List<Double> pars= new ArrayList<Double>();
+
+            //loop over all possible combinations
+            for (int[] indices : new CartesianProduct(lengths)) {
+                //System.out.println(Arrays.toString(indices));
+                List<Integer> mins = indexOfMin(internalnodes.get(0).getParsimonyScoresAtIndex(i));
+                //loop over parsimonyscores indices, which is also the length of index array
+                if(mins.contains(indices[0])){
+
+                    pars= helperScoresCombination(indices,parsimonyScores);
+
+                    //Only continue for values without infinity scores
+                    if(!pars.contains(inf)){
+                        System.out.println(Arrays.toString(indices));
+                        System.out.println(pars);
+                        checkIfPossible(indices,pars, internalnodes,i);
+                    }
+
+                }
+            }
+
+        }
+
+
+    }
+    public static void checkIfPossible(int[] indices, List<Double> pars, List<Node> internalnodes,int i){
+        int n= 0;
+        boolean lowHigh= false;
+        int changeInStates= 0;
+        Double inf = Double.POSITIVE_INFINITY;
+        System.out.println("");
+        for(Node node:internalnodes){
+            System.out.println("N: "+n);
+            Node left= node.getLeftChild();
+            Node right= node.getRightChild();
+            System.out.println(node.getName()+left.getName()+right.getName());
+            double[] sl; double[] sr; double l; double r;
+            double checkscore= pars.get(n);
+            int index= indices[n];
+            if(left.getLeftChild()== null && right.getRightChild()==null) {
+                //last internal node, left node and right node are leafe nodes
+                sl= left.getParsimonyScoresAtIndex(i);
+                sr= right.getParsimonyScoresAtIndex(i);
+                l= sl[index];
+                for (int p=0; p<sl.length; p++) {
+                    if(sl[p]!= inf){
+                        l= sl[p];
+                        if(index<p){
+                            lowHigh= true;
+                        }
+                        else{
+                            lowHigh= false;
+                        }
+                        changeInStates=1;
+                    }
+                }
+
+                r= sr[index];
+                for (int p=0; p<sr.length; p++) {
+                    if(sr[p]!= inf){
+                        r= sr[p];
+                        if(index<p){
+                            lowHigh= true;
+                        }
+                        else{
+                            lowHigh= false;
+                        }
+                        changeInStates=1;
+                    }
+                }
+
+                System.out.println("checkscore= "+checkscore+" l= "+l+" + r= "+r);
+                if(checkscore==(l+r)){
+                    System.out.println("NO Change!");}
+                else if(checkscore==(l+r)+changeInStates){
+                    System.out.println("Change!");
+                    if(lowHigh){
+                        System.out.println("LowHigh!");
+                    }
+                    else{System.out.println("HighLow!");}
+                    System.out.println(node.getName()+left.getName()+right.getName());
+                }
+
+
+            }
+            else if(right.getRightChild()==null&& internalnodes.contains(left)){
+                //right leaf is a leaf node
+                l= pars.get(n+1);
+                sr= right.getParsimonyScoresAtIndex(i);
+
+                r= sr[index];
+                for (int p=0; p<sr.length; p++) {
+                    if(sr[p]!= inf){
+                        r= sr[p];
+                    }
+                    if(index<p){
+                        lowHigh= true;
+                    }
+                    else{
+                        lowHigh= false;
+                    }
+                    changeInStates=1;
+                }
+
+                System.out.println("checkscore= "+checkscore+" l= "+l+" + r= "+r);
+                if(checkscore==(l+r)){
+                    System.out.println("NO Change!");
+                }
+                else if(checkscore==(l+r)+changeInStates){
+                    System.out.println("Change!");
+                    if(lowHigh){
+                        System.out.println("LowHigh!");
+                    }
+                    else{System.out.println("HighLow!");}
+                    System.out.println(node.getName()+left.getName()+right.getName());
+                }
+            }
+
+            else if(left.getLeftChild()==null&& internalnodes.contains(right)){
+                // left leaf is a leaf node
+                r= pars.get(n+1);
+                sl= left.getParsimonyScoresAtIndex(i);
+
+                l= sl[index];
+                for (int p=0; p<sl.length; p++) {
+                    if(sl[p]!= inf){
+                        l= sl[p];
+                    }
+                    if(index<p){
+                        lowHigh= true;
+                    }
+                    else{
+                        lowHigh= false;
+                    }
+                    changeInStates=1;
+                }
+                System.out.println("checkscore= "+checkscore+" l= "+l+" + r= "+r);
+
+                if(checkscore==(l+r)){
+                    System.out.println("NO Change!");
+                }
+                else if(checkscore==(l+r)+changeInStates){
+                    System.out.println("Change!");
+                    if(lowHigh){
+                        System.out.println("LowHigh!");
+                    }
+                    else{System.out.println("HighLow!");}
+                    System.out.println(node.getName()+left.getName()+right.getName());
+                }
+            }
+            n++;
+        }
+
+
+    }
+
+
+    public static List<Double> helperScoresCombination(int[] indices,  List<double[]>parsimonyScores){
+        List<Double> scores= new ArrayList<Double>();
+        for(int n=0; n<indices.length; n++){
+            int i = indices[n];
+            double[]score = parsimonyScores.get(n);
+            double s = score[i];
+            scores.add(s);
+        }
+        return scores;
+    }
+
+
+    public static double computeJaccardIndex( List<String> A, List<String> B) {
+        // from assignment07 Sequence Bioinfromatics
+        Set<String> union = new HashSet<>(A);
+        Set<String> intersect = new HashSet<>(A);
+        union.addAll(B);
+        intersect.retainAll(B);
+        intersect.retainAll(union);
+        union.removeAll(B);
+        double unionSize = union.size();
+        double intersectionSize = intersect.size();
+        double jc = intersectionSize/unionSize;
+        return jc;
     }
 
     public static String getChange(Node node,boolean low){
@@ -203,29 +430,30 @@ public class useOfSankoff_Spath_Auckenthaler {
             //System.out.println("Checkscore: "+checkScore+" at index "+index);
             for(int l :possibles_left){
                 for (int k:possibles_right){
+                    System.out.println("g: "+g.get(j)+" k: "+k+" l: "+l);
                     if(index!=l || index!=k){
                         if(checkScore== S_left[l]+S_right[k]+1){
-                            //System.out.println("CHANGE IN STATES");
+                            System.out.println("CHANGE IN STATES");
                             //System.out.println("Node: "+ node.getName()+" can be derived by: "+childLeft.getName()+ " Score left= "+S_left[l]+" index left: "+l+" "+childRight.getName()+" Score right= "+S_right[k]+" index right: "+k);
                             if (index==0){
                                 if(l==1){
-                                    //System.out.println("Low to high "+index+" "+node.getName()+" "+l+" "+childLeft.getName());
+                                    System.out.println("Low to high "+index+" "+node.getName()+" "+l+" "+childLeft.getName());
                                     node.setlChange(childLeft);
                                     x= getChange(node,true);
                                     changePos0.add(x);}
                                 else if(k==1){
-                                    //System.out.println("Low to high "+index+" "+node.getName()+" "+k+" "+childRight.getName());
+                                    System.out.println("Low to high "+index+" "+node.getName()+" "+k+" "+childRight.getName());
                                     node.setrChange(childRight);
                                     x= getChange(node,false);
                                     changePos0.add(x);}}
                             if (index==1){
                                 if(l==0){
-                                    //System.out.println("high to low "+index+" "+node.getName()+" "+l+" "+childLeft.getName());
+                                    System.out.println("high to low "+index+" "+node.getName()+" "+l+" "+childLeft.getName());
                                     node.setlChange(childLeft);
                                     x= getChange(node,true);
                                     changePos1.add(x);}
                                 else if(k==0){
-                                    //System.out.println("high to low "+index+" "+node.getName()+" "+k+" "+childRight.getName());
+                                    System.out.println("high to low "+index+" "+node.getName()+" "+k+" "+childRight.getName());
                                     node.setrChange(childRight);
                                     x= getChange(node,false);
                                     changePos1.add(x);}
@@ -233,9 +461,9 @@ public class useOfSankoff_Spath_Auckenthaler {
                         }
                     }
                     else if(l==k){
-                        if(checkScore== S_left[l]+S_right[k]) {//System.out.println("NO CHANGE IN STATES");
+                        if(checkScore== S_left[l]+S_right[k]) {System.out.println("NO CHANGE IN STATES");
                             }
-                        else if(checkScore== S_left[l]+S_right[k]+2){//System.out.println("NO CHANGE IN STATES");
+                        else if(checkScore== S_left[l]+S_right[k]+2){System.out.println("NO CHANGE IN STATES");
                             }
                     }
                 }
@@ -245,20 +473,25 @@ public class useOfSankoff_Spath_Auckenthaler {
         }
         return c;
     }
+    // Function to generate all binary strings
+    public static List<int []> generateBinaryCombinations(int n, List<int []>combinations, int array[], int i)
+    {
+        if (i == n)
+        {
+            combinations.add(array);
+            return combinations;
+        }
+        array[i] = 0;
+        generateBinaryCombinations(n, combinations, array,i + 1);
 
+        array[i] = 1;
+        generateBinaryCombinations(n, combinations,array, i + 1);
 
-    public static double computeJaccardIndex( SortedSet<String> A, SortedSet<String> B) {
-        // from assignment07 Sequence Bioinfromatics
-        Set<String> union = new HashSet<>(A);
-        Set<String> intersect = new HashSet<>(A);
-        union.addAll(B);
-        intersect.retainAll(B);
-        intersect.retainAll(union);
-        double unions = union.size();
-        double intersection = intersect.size();
-        double jc = intersection/unions;
-        return jc;
+        return combinations;
     }
+
+
+
 
     public static List<Node> reverseOrder(List<Node>list){
         List<Node> newList = new ArrayList<>();
