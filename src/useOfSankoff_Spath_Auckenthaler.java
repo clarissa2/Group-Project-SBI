@@ -384,7 +384,7 @@ public class useOfSankoff_Spath_Auckenthaler {
         // Use a stack to keep track of the nodes as we build the tree
         Stack<Node> stack = new Stack<>();
 
-        // Initialize some variables to keep track of the current node and its properties
+        // Initialize some variables to keep track of the current, root, and internal node name
         Node current = null;
         Node root = null;
         int ascii = 90;
@@ -451,8 +451,6 @@ public class useOfSankoff_Spath_Auckenthaler {
         } catch(IOException ioe) {
             ioe.printStackTrace();
         }
-
-        System.out.println(characters_dic);
         return characters_dic;
     }
 
