@@ -605,22 +605,7 @@ public class test {
         }
         return c;
     }
-    // Function to generate all binary strings
-    public static List<int []> generateBinaryCombinations(int n, List<int []>combinations, int array[], int i)
-    {
-        if (i == n)
-        {
-            combinations.add(array);
-            return combinations;
-        }
-        array[i] = 0;
-        generateBinaryCombinations(n, combinations, array,i + 1);
 
-        array[i] = 1;
-        generateBinaryCombinations(n, combinations,array, i + 1);
-
-        return combinations;
-    }
 
 
 

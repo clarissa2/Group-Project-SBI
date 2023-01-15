@@ -118,7 +118,7 @@ public class useOfSankoff_Spath_Auckenthaler {
         //Only compare two characteristics with each other NOT MORE!
         //If more create array of index combinations!!!!!!!!!
         for(int i=0; i<root.getParsimonyScores().size(); i++){
-            System.out.println("Character (0== weight; 1 ==dental): "+st);
+            //System.out.println("Character (0== weight; 1 ==dental): "+st);
             boolean first = true;
             pScores = root.getParsimonyScoresAtIndex(i);
             g = indexOfMin(pScores);
@@ -148,18 +148,10 @@ public class useOfSankoff_Spath_Auckenthaler {
         // calculate the correlation between two different characteristics
         //eg. weight characteristic
         uniqueValuesC0.forEach(unique -> {unique.forEach(uniqueVal ->{finalSetsC1.add(uniqueVal);});});
-        //eg Dental characteristic
+        //eg. Dental characteristic
         uniqueValuesC1.forEach(unique -> {unique.forEach(uniqueVal ->{finalSetsC2.add(uniqueVal);});});
-        System.out.println("Characteristic alpha state changes(i-->j): ");
-        System.out.println(finalSetsC1);
-        System.out.println("Characteristic beta state changes(i'-->j'): ");
-        System.out.println(finalSetsC2);
 
-        //Changes for i-->j & i' -->j'
-       // Characteristic alpha state changes(i-->j):
-        //[[X --> Y, Y --> Cheetah, Y --> Cheetah, Z --> Puma], [X --> Pallas, Z --> Jaguarundi]]
-        //Characteristic beta state changes(i'-->j'):
-        //[[X --> Y], [X --> Pallas]]
+
 
         List<Double> jcInd = new ArrayList();
         finalSetsC1.forEach(e->{
@@ -172,11 +164,11 @@ public class useOfSankoff_Spath_Auckenthaler {
                 {
                     double jc= computeJaccardIndex(A,B);
                     jcInd.add(jc);
-                    System.out.println(e+" "+x+" Correlation: "+jc);
+                    //System.out.println(e+" "+x+" Correlation: "+jc);
                 }
             });
         });
-       System.out.println("Jaccard indexs for all kind of changes: "+ jcInd);
+       //System.out.println("Jaccard indexs for all kind of changes: "+ jcInd);
 
 
        List<Node> internalnodes= new ArrayList<Node>();
@@ -191,11 +183,12 @@ public class useOfSankoff_Spath_Auckenthaler {
         pSets = sankoffTopDown((internalnodes));
         System.out.println(pSets);
 
+        //filter sets for changes i-->j and i'---> j'
+
     }
 
 
     public static List<List<List<String>>> sankoffTopDown (List<Node>internalnodes){
-
         List<List<List<String>>> pSets= new ArrayList<>();
         //loop over different characters to get change List for each character
         for(int i=0; i<internalnodes.get(0).getParsimonyScores().size(); i++){
@@ -402,21 +395,6 @@ public class useOfSankoff_Spath_Auckenthaler {
         return x;
     }
 
-    //Not NEEDED ANDYMORE
-    public static List<int []> possibleSets(int minPaScore){
-        List<int[]> posSet = new ArrayList<int[]>();
-        for (int i=0; i<minPaScore+1; i++) {
-            for (int j=0;j<minPaScore+1; j++) {
-                if(i+j == minPaScore){
-                    posSet.add(new int[]{i,j});
-                }
-            }
-
-        }
-        return posSet;
-    }
-
-
     public static List<Double> helperScoresCombination(int[] indices,  List<double[]>parsimonyScores){
         List<Double> scores= new ArrayList<Double>();
         for(int n=0; n<indices.length; n++){
@@ -486,30 +464,30 @@ public class useOfSankoff_Spath_Auckenthaler {
             //System.out.println("Checkscore: "+checkScore+" at index "+index);
             for(int l :possibles_left){
                 for (int k:possibles_right){
-                    System.out.println("g: "+g.get(j)+" k: "+k+" l: "+l);
+                   // System.out.println("g: "+g.get(j)+" k: "+k+" l: "+l);
                     if(index!=l || index!=k){
                         if(checkScore== S_left[l]+S_right[k]+1){
-                            System.out.println("CHANGE IN STATES");
+                           // System.out.println("CHANGE IN STATES");
                             //System.out.println("Node: "+ node.getName()+" can be derived by: "+childLeft.getName()+ " Score left= "+S_left[l]+" index left: "+l+" "+childRight.getName()+" Score right= "+S_right[k]+" index right: "+k);
                             if (index==0){
                                 if(l==1){
-                                    System.out.println("Low to high "+index+" "+node.getName()+" "+l+" "+childLeft.getName());
+                                    //System.out.println("Low to high "+index+" "+node.getName()+" "+l+" "+childLeft.getName());
                                     node.setlChange(childLeft);
                                     x= getChange(node,true);
                                     changePos0.add(x);}
                                 else if(k==1){
-                                    System.out.println("Low to high "+index+" "+node.getName()+" "+k+" "+childRight.getName());
+                                    //System.out.println("Low to high "+index+" "+node.getName()+" "+k+" "+childRight.getName());
                                     node.setrChange(childRight);
                                     x= getChange(node,false);
                                     changePos0.add(x);}}
                             if (index==1){
                                 if(l==0){
-                                    System.out.println("high to low "+index+" "+node.getName()+" "+l+" "+childLeft.getName());
+                                    //System.out.println("high to low "+index+" "+node.getName()+" "+l+" "+childLeft.getName());
                                     node.setlChange(childLeft);
                                     x= getChange(node,true);
                                     changePos1.add(x);}
                                 else if(k==0){
-                                    System.out.println("high to low "+index+" "+node.getName()+" "+k+" "+childRight.getName());
+                                   //System.out.println("high to low "+index+" "+node.getName()+" "+k+" "+childRight.getName());
                                     node.setrChange(childRight);
                                     x= getChange(node,false);
                                     changePos1.add(x);}
@@ -517,9 +495,9 @@ public class useOfSankoff_Spath_Auckenthaler {
                         }
                     }
                     else if(l==k){
-                        if(checkScore== S_left[l]+S_right[k]) {System.out.println("NO CHANGE IN STATES");
+                        if(checkScore== S_left[l]+S_right[k]) {//System.out.println("NO CHANGE IN STATES");
                             }
-                        else if(checkScore== S_left[l]+S_right[k]+2){System.out.println("NO CHANGE IN STATES");
+                        else if(checkScore== S_left[l]+S_right[k]+2){//System.out.println("NO CHANGE IN STATES");
                             }
                     }
                 }
@@ -529,25 +507,6 @@ public class useOfSankoff_Spath_Auckenthaler {
         }
         return c;
     }
-    // NOT NEEDED ANYMORE
-    public static List<int []> generateBinaryCombinations(int n, List<int []>combinations, int array[], int i)
-    {
-        if (i == n)
-        {
-            combinations.add(array);
-            return combinations;
-        }
-        array[i] = 0;
-        generateBinaryCombinations(n, combinations, array,i + 1);
-
-        array[i] = 1;
-        generateBinaryCombinations(n, combinations,array, i + 1);
-
-        return combinations;
-    }
-
-
-
 
     public static List<Node> reverseOrder(List<Node>list){
         List<Node> newList = new ArrayList<>();
@@ -632,15 +591,6 @@ public class useOfSankoff_Spath_Auckenthaler {
         }
     }
 
-    //helper function to get minimum score in array
-    public static double minimum(double [] array) {
-        double min = array[0];
-        for (int i = 0; i < array.length; i++) {
-            if (array[i] < min) {
-                min = array[i];}
-        }
-        return min;
-    }
     //helper function to get indices of minimum score in array
     public static List<Integer> indexOfMin(double[] array){
         List<Integer> listOfMin = new ArrayList<Integer>();
@@ -657,13 +607,6 @@ public class useOfSankoff_Spath_Auckenthaler {
                 index = i;
                 listOfMin.add(index,index);}}
         return listOfMin;
-    }
-
-    //helper function to get absolute value in array
-    public static double[] absolut(double[] array) {
-        for (int i = 0; i < array.length; i++) {
-            array[i] = Math.abs(array[i]);}
-        return array;
     }
 
 
@@ -739,8 +682,6 @@ public class useOfSankoff_Spath_Auckenthaler {
     }
 
     public static ArrayList<ArrayList<Integer>> top_down (List<Node>internal_nodes, int character, ArrayList<ArrayList<Integer>> paths) {
-
-
 
         for (int i = 1; i < internal_nodes.size(); i++) {
             Node w_node = internal_nodes.get(i);
