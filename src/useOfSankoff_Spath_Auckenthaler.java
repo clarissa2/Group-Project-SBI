@@ -154,7 +154,6 @@ public class useOfSankoff_Spath_Auckenthaler {
         System.out.println("Characteristic beta state changes(i'-->j'): ");
         System.out.println(finalSetsC2);
 
-
         //Changes for i-->j & i' -->j'
        // Characteristic alpha state changes(i-->j):
         //[[X --> Y, Y --> Cheetah, Y --> Cheetah, Z --> Puma], [X --> Pallas, Z --> Jaguarundi]]
@@ -178,15 +177,24 @@ public class useOfSankoff_Spath_Auckenthaler {
         });
        System.out.println("Jaccard indexs for all kind of changes: "+ jcInd);
 
-       System.out.println("");
+
+
        List<Node> internalnodes= new ArrayList<Node>();
         for(Node node:list){
             if(node.getLeftChild()!=null && node.getRightChild()!=null){
                 internalnodes.add(node);
             }
         }
+
         sankoffTopDown((internalnodes));
+
+
+        List<int[]>pSet= new ArrayList<>();
+        pSet=possibleSets(2);
+        for(int[]p :pSet) System.out.println(Arrays.toString(p));
     }
+
+
     public static void sankoffTopDown (List<Node>internalnodes){
         Double inf = Double.POSITIVE_INFINITY;
         //loop over different characters to get change List for each character
@@ -213,16 +221,22 @@ public class useOfSankoff_Spath_Auckenthaler {
                 List<Integer> mins = indexOfMin(internalnodes.get(0).getParsimonyScoresAtIndex(i));
                 //loop over parsimonyscores indices, which is also the length of index array
                 if(mins.contains(indices[0])){
-
+                    //all combinations based on CatesianProduct
                     pars= helperScoresCombination(indices,parsimonyScores);
 
                     //Only continue for values without infinity scores
                     if(!pars.contains(inf)){
+                        boolean possible= false;
+                        //check values of leaf nodes
+
+
                         System.out.println(Arrays.toString(indices));
                         System.out.println(pars);
-                        checkIfPossible(indices,pars, internalnodes,i);
-                    }
 
+                        checkIfPossible(indices,pars, internalnodes,i);
+
+
+                    }
                 }
             }
 
@@ -230,9 +244,11 @@ public class useOfSankoff_Spath_Auckenthaler {
 
 
     }
+
+
     public static void checkIfPossible(int[] indices, List<Double> pars, List<Node> internalnodes,int i){
         int n= 0;
-        boolean lowHigh= false;
+        boolean lowHigh = false;
         int changeInStates= 0;
         Double inf = Double.POSITIVE_INFINITY;
         System.out.println("");
@@ -241,52 +257,52 @@ public class useOfSankoff_Spath_Auckenthaler {
             Node left= node.getLeftChild();
             Node right= node.getRightChild();
             System.out.println(node.getName()+left.getName()+right.getName());
-            double[] sl; double[] sr; double l; double r;
+            double[] sl;
+            double[] sr;
+            double l;
+            double r;
             double checkscore= pars.get(n);
             int index= indices[n];
-            if(left.getLeftChild()== null && right.getRightChild()==null) {
+
+                if(left.getLeftChild()== null && right.getRightChild()==null) {
                 //last internal node, left node and right node are leafe nodes
-                sl= left.getParsimonyScoresAtIndex(i);
-                sr= right.getParsimonyScoresAtIndex(i);
-                l= sl[index];
-                for (int p=0; p<sl.length; p++) {
-                    if(sl[p]!= inf){
-                        l= sl[p];
-                        if(index<p){
-                            lowHigh= true;
-                        }
-                        else{
-                            lowHigh= false;
-                        }
+                    sl= left.getParsimonyScoresAtIndex(i);
+                    sr= right.getParsimonyScoresAtIndex(i);
+                    l= sl[index];
+                    r= sr[index];
+                    if(l == inf){
+                        System.out.println("Transition Change");
                         changeInStates=1;
+                        for (int p=0; p<sl.length; p++) {
+                            if(sl[p]!= inf){l= sl[p];
+                                if(index<p){lowHigh= true;}
+                                else{lowHigh = false;}
+                            }
+                        }
+                        System.out.println(node.getName()+left.getName());
                     }
-                }
-
-                r= sr[index];
-                for (int p=0; p<sr.length; p++) {
-                    if(sr[p]!= inf){
-                        r= sr[p];
-                        if(index<p){
-                            lowHigh= true;
-                        }
-                        else{
-                            lowHigh= false;
-                        }
+                    if(r == inf){
+                        System.out.println("Transition Change");
                         changeInStates=1;
+                        for (int p=0; p<sr.length; p++) {
+                            if(sr[p]!= inf){r= sr[p];
+                                if(index<p){lowHigh= true;}
+                                else{lowHigh= false;}}
+                        }
+                        System.out.println(node.getName()+right.getName());
                     }
-                }
 
-                System.out.println("checkscore= "+checkscore+" l= "+l+" + r= "+r);
-                if(checkscore==(l+r)){
-                    System.out.println("NO Change!");}
-                else if(checkscore==(l+r)+changeInStates){
-                    System.out.println("Change!");
-                    if(lowHigh){
-                        System.out.println("LowHigh!");
+                    System.out.println("checkscore= "+checkscore+" l= "+l+" + r= "+r);
+                    if(checkscore==(l+r)){
+                        System.out.println("NO Change!");}
+                    else if(checkscore==(l+r)+changeInStates){
+                        //System.out.println("Change!");
+                        if(lowHigh){
+                            System.out.println("LowHigh!");
+                        }
+                        else{System.out.println("HighLow!");}
+
                     }
-                    else{System.out.println("HighLow!");}
-                    System.out.println(node.getName()+left.getName()+right.getName());
-                }
 
 
             }
@@ -294,7 +310,6 @@ public class useOfSankoff_Spath_Auckenthaler {
                 //right leaf is a leaf node
                 l= pars.get(n+1);
                 sr= right.getParsimonyScoresAtIndex(i);
-
                 r= sr[index];
                 for (int p=0; p<sr.length; p++) {
                     if(sr[p]!= inf){
@@ -319,7 +334,7 @@ public class useOfSankoff_Spath_Auckenthaler {
                         System.out.println("LowHigh!");
                     }
                     else{System.out.println("HighLow!");}
-                    System.out.println(node.getName()+left.getName()+right.getName());
+                    System.out.println(node.getName()+right.getName());
                 }
             }
 
@@ -327,7 +342,6 @@ public class useOfSankoff_Spath_Auckenthaler {
                 // left leaf is a leaf node
                 r= pars.get(n+1);
                 sl= left.getParsimonyScoresAtIndex(i);
-
                 l= sl[index];
                 for (int p=0; p<sl.length; p++) {
                     if(sl[p]!= inf){
@@ -352,13 +366,25 @@ public class useOfSankoff_Spath_Auckenthaler {
                         System.out.println("LowHigh!");
                     }
                     else{System.out.println("HighLow!");}
-                    System.out.println(node.getName()+left.getName()+right.getName());
+                    System.out.println(node.getName()+left.getName());
                 }
             }
             n++;
         }
 
 
+    }
+    public static List<int []> possibleSets(int minPaScore){
+        List<int[]> posSet = new ArrayList<int[]>();
+        for (int i=0; i<minPaScore+1; i++) {
+            for (int j=0;j<minPaScore+1; j++) {
+                if(i+j == minPaScore){
+                    posSet.add(new int[]{i,j});
+                }
+            }
+
+        }
+        return posSet;
     }
 
 

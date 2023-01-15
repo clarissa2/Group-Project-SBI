@@ -14,8 +14,6 @@ public class newickParser {
             printTree(root.getLeftChild());
             printTree(root.getRightChild());
         }
-
-
     }
 
     public static Node parseNewick(String newick) {
