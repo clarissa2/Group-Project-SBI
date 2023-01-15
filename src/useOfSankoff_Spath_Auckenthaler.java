@@ -22,7 +22,7 @@ public class useOfSankoff_Spath_Auckenthaler {
 
         //set values
         String newick = "(((Jaguarundi,Puma),Cheetah),Pallas)";
-        newick= newick.replace(" ","");
+        newick= newick.replace(" "," ");
         //sort of dollo-cost Matrix for 3 states
         double [][]weightMatrix = new double[][]{{0, 1, 1}, {1, 0, 1}, {inf, inf, 0}};
 
@@ -144,6 +144,7 @@ public class useOfSankoff_Spath_Auckenthaler {
             //update Character
             st+=1;
         }
+
         // calculate the correlation between two different characteristics
         //eg. weight characteristic
         uniqueValuesC0.forEach(unique -> {unique.forEach(uniqueVal ->{finalSetsC1.add(uniqueVal);});});
@@ -178,7 +179,6 @@ public class useOfSankoff_Spath_Auckenthaler {
        System.out.println("Jaccard indexs for all kind of changes: "+ jcInd);
 
 
-
        List<Node> internalnodes= new ArrayList<Node>();
         for(Node node:list){
             if(node.getLeftChild()!=null && node.getRightChild()!=null){
@@ -188,10 +188,6 @@ public class useOfSankoff_Spath_Auckenthaler {
 
         sankoffTopDown((internalnodes));
 
-
-        List<int[]>pSet= new ArrayList<>();
-        pSet=possibleSets(2);
-        for(int[]p :pSet) System.out.println(Arrays.toString(p));
     }
 
 
@@ -219,6 +215,7 @@ public class useOfSankoff_Spath_Auckenthaler {
             for (int[] indices : new CartesianProduct(lengths)) {
                 //System.out.println(Arrays.toString(indices));
                 List<Integer> mins = indexOfMin(internalnodes.get(0).getParsimonyScoresAtIndex(i));
+                List<String> pChanges = new ArrayList<>();
                 //loop over parsimonyscores indices, which is also the length of index array
                 if(mins.contains(indices[0])){
                     //all combinations based on CatesianProduct
@@ -228,14 +225,16 @@ public class useOfSankoff_Spath_Auckenthaler {
                     if(!pars.contains(inf)){
                         boolean possible= false;
                         //check values of leaf nodes
-
-
                         System.out.println(Arrays.toString(indices));
                         System.out.println(pars);
 
-                        checkIfPossible(indices,pars, internalnodes,i);
+                        //get possible way through the tree;
 
 
+                        //detect changes of possible ways
+                        pChanges= detectChanges(indices,pars, internalnodes,i);
+                        System.out.println(pChanges);
+                        System.out.println("");
                     }
                 }
             }
@@ -246,21 +245,18 @@ public class useOfSankoff_Spath_Auckenthaler {
     }
 
 
-    public static void checkIfPossible(int[] indices, List<Double> pars, List<Node> internalnodes,int i){
+    public static List<String> detectChanges(int[] indices, List<Double> pars, List<Node> internalnodes,int i){
         int n= 0;
         boolean lowHigh = false;
         int changeInStates= 0;
+        List<String> pChanges = new ArrayList<>();
         Double inf = Double.POSITIVE_INFINITY;
-        System.out.println("");
         for(Node node:internalnodes){
+            String x="";
             System.out.println("N: "+n);
             Node left= node.getLeftChild();
             Node right= node.getRightChild();
-            System.out.println(node.getName()+left.getName()+right.getName());
-            double[] sl;
-            double[] sr;
-            double l;
-            double r;
+            double[] sl; double[] sr; double l; double r;
             double checkscore= pars.get(n);
             int index= indices[n];
 
@@ -270,40 +266,37 @@ public class useOfSankoff_Spath_Auckenthaler {
                     sr= right.getParsimonyScoresAtIndex(i);
                     l= sl[index];
                     r= sr[index];
+                    //System.out.println("Node:"+ node.getName()+" "+ "left: "+left.getName() +" "+l +"; "+right.getName()+" "+r);
+                    if(l==inf&&r==inf)break;
                     if(l == inf){
                         System.out.println("Transition Change");
                         changeInStates=1;
                         for (int p=0; p<sl.length; p++) {
-                            if(sl[p]!= inf){l= sl[p];
-                                if(index<p){lowHigh= true;}
-                                else{lowHigh = false;}
+                            if(sl[p]!= inf){
+                                l= sl[p];
+                                lowHigh= proofTransitionType(index,p);
                             }
                         }
-                        System.out.println(node.getName()+left.getName());
+                        x= getChangeStatements(lowHigh,r,l,changeInStates,checkscore,node,left);
+                        if(x!=""){
+                            pChanges.add(x);
+                        }
                     }
+
                     if(r == inf){
                         System.out.println("Transition Change");
                         changeInStates=1;
                         for (int p=0; p<sr.length; p++) {
-                            if(sr[p]!= inf){r= sr[p];
-                                if(index<p){lowHigh= true;}
-                                else{lowHigh= false;}}
+                            if(sr[p]!= inf){
+                                r= sr[p];
+                                lowHigh= proofTransitionType(index,p);
+                            }
                         }
-                        System.out.println(node.getName()+right.getName());
-                    }
-
-                    System.out.println("checkscore= "+checkscore+" l= "+l+" + r= "+r);
-                    if(checkscore==(l+r)){
-                        System.out.println("NO Change!");}
-                    else if(checkscore==(l+r)+changeInStates){
-                        //System.out.println("Change!");
-                        if(lowHigh){
-                            System.out.println("LowHigh!");
+                        x= getChangeStatements(lowHigh,r,l,changeInStates,checkscore,node,right);
+                        if(x!=""){
+                            pChanges.add(x);
                         }
-                        else{System.out.println("HighLow!");}
-
                     }
-
 
             }
             else if(right.getRightChild()==null&& internalnodes.contains(left)){
@@ -311,31 +304,40 @@ public class useOfSankoff_Spath_Auckenthaler {
                 l= pars.get(n+1);
                 sr= right.getParsimonyScoresAtIndex(i);
                 r= sr[index];
-                for (int p=0; p<sr.length; p++) {
-                    if(sr[p]!= inf){
-                        r= sr[p];
-                    }
-                    if(index<p){
-                        lowHigh= true;
-                    }
-                    else{
-                        lowHigh= false;
-                    }
+                System.out.println("Node:"+ node.getName()+" "+ "left: "+left.getName() +" "+l +"; "+right.getName()+" "+r);
+                if(l==checkscore&&r !=0)break;
+                if(r == inf){
+                    System.out.println("Transition Change");
                     changeInStates=1;
+                    for (int p=0; p<sr.length; p++) {
+                        changeInStates=1;
+                        if(sr[p]!= inf){
+                            r= sr[p];
+                            lowHigh= proofTransitionType(index,p);
+                        }
+                    }
+                    x= getChangeStatements(lowHigh,r,l,changeInStates,checkscore,node,right);
+                    if(x!=""){
+                        pChanges.add(x);
+                    }
+                }
+                if(index != indices[n+1]){
+                    System.out.println("Proof this case");
+                    changeInStates=1;
+                    if(l+r+changeInStates==checkscore){
+                        if(l==0&& index==1){
+                            lowHigh= false;
+                        }
+                        if(l==1&& index==0){
+                            lowHigh= true;
+                        }
+                    }
+                    x= getChangeStatements(lowHigh,r,l,changeInStates,checkscore,node,left);
+                    if(x!=""){
+                        pChanges.add(x);
+                    }
                 }
 
-                System.out.println("checkscore= "+checkscore+" l= "+l+" + r= "+r);
-                if(checkscore==(l+r)){
-                    System.out.println("NO Change!");
-                }
-                else if(checkscore==(l+r)+changeInStates){
-                    System.out.println("Change!");
-                    if(lowHigh){
-                        System.out.println("LowHigh!");
-                    }
-                    else{System.out.println("HighLow!");}
-                    System.out.println(node.getName()+right.getName());
-                }
             }
 
             else if(left.getLeftChild()==null&& internalnodes.contains(right)){
@@ -343,37 +345,70 @@ public class useOfSankoff_Spath_Auckenthaler {
                 r= pars.get(n+1);
                 sl= left.getParsimonyScoresAtIndex(i);
                 l= sl[index];
-                for (int p=0; p<sl.length; p++) {
-                    if(sl[p]!= inf){
-                        l= sl[p];
+                //System.out.println("Node:"+ node.getName()+" "+ "left: "+left.getName() +" "+l +"; "+right.getName()+" "+r);
+                if(r==checkscore&& l !=0)break;
+                if(l == inf ) {
+                    //System.out.println("Transition Change");
+                    changeInStates = 1;
+                    for (int p = 0; p < sl.length; p++) {
+                        if (sl[p] != inf) {
+                            l = sl[p];
+                            lowHigh= proofTransitionType(index,p);
+                        }
                     }
-                    if(index<p){
-                        lowHigh= true;
+                    x= getChangeStatements(lowHigh,r,l,changeInStates,checkscore,node,left);
+                    if(x!=""){
+                        pChanges.add(x);
                     }
-                    else{
-                        lowHigh= false;
-                    }
-                    changeInStates=1;
                 }
-                System.out.println("checkscore= "+checkscore+" l= "+l+" + r= "+r);
 
-                if(checkscore==(l+r)){
-                    System.out.println("NO Change!");
-                }
-                else if(checkscore==(l+r)+changeInStates){
-                    System.out.println("Change!");
-                    if(lowHigh){
-                        System.out.println("LowHigh!");
+                if(index != indices[n+1]){
+                    //System.out.println("Proof this case");
+                    changeInStates=1;
+                    if(l+r+changeInStates==checkscore){
+                        if(r==0&& index==1){
+                            lowHigh= false;
+                        }
+                        if(r==1&& index==0){
+                            lowHigh= true;
+                        }
                     }
-                    else{System.out.println("HighLow!");}
-                    System.out.println(node.getName()+left.getName());
+                    x= getChangeStatements(lowHigh,r,l,changeInStates,checkscore,node,right);
+                    if(x!=""){
+                        pChanges.add(x);
+                    }
+
                 }
             }
+
             n++;
         }
-
+        //System.out.println(pChanges);
+        return pChanges;
 
     }
+
+    public static boolean proofTransitionType(int index, int p){
+        boolean lowHigh= false;
+            if(index==0&&p==1){
+                lowHigh= true;}
+            else if(index==1&&p==0){
+                lowHigh= false;
+            }
+        return lowHigh;
+    }
+    public static String getChangeStatements(boolean lowHigh, double r, double l, int changeInStates, double checkscore, Node node, Node change){
+        String x= "";
+        //No Change statement is not required only for testing purposes
+        //if(checkscore==(l+r)){}
+        if(checkscore==(l+r)+changeInStates){
+            if(lowHigh){ x= node.getName().toLowerCase()+" ---> "+change.getName().toUpperCase();}
+            else{ x= node.getName().toUpperCase()+" ---> "+change.getName().toLowerCase();}
+        }
+        return x;
+    }
+
+    //Not NEEDED ANDYMORE
     public static List<int []> possibleSets(int minPaScore){
         List<int[]> posSet = new ArrayList<int[]>();
         for (int i=0; i<minPaScore+1; i++) {
@@ -414,6 +449,7 @@ public class useOfSankoff_Spath_Auckenthaler {
         return jc;
     }
 
+    // OBSOLETE
     public static String getChange(Node node,boolean low){
         String changes;
         StringBuilder sb = new StringBuilder(node.getName());
@@ -432,7 +468,7 @@ public class useOfSankoff_Spath_Auckenthaler {
         return changes;
     }
 
-
+    //OBSOLETE
     public static HashSet<List<String>> topDown(List<Integer> g, Node node, double[] pScores, int st,List<String>changePos0,List<String>changePos1){
         Double inf = Double.POSITIVE_INFINITY;
         double checkScore;
@@ -499,7 +535,7 @@ public class useOfSankoff_Spath_Auckenthaler {
         }
         return c;
     }
-    // Function to generate all binary strings
+    // NOT NEEDED ANYMORE
     public static List<int []> generateBinaryCombinations(int n, List<int []>combinations, int array[], int i)
     {
         if (i == n)
@@ -595,6 +631,7 @@ public class useOfSankoff_Spath_Auckenthaler {
                     S[1] = ((Collections.min(high_vectorLeft) + Collections.min(high_vectorRight)));
                     S[2] = ((Collections.min(unknown_vectorLeft) + Collections.min(unknown_vectorRight)));
                     PS.add(S);
+
                     System.out.println("Updated Scores " + node.getName() + " "+"Characterstate "+(k+1) + ": " + Arrays.toString(S));
                 }
                 node.setParsimonyScores(PS);
