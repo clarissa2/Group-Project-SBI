@@ -39,4 +39,5 @@ public class CartesianProduct implements Iterable<int[]>, Iterator<int[]>{
         throw new UnsupportedOperationException();
     }
 
+    //for (int[] indices : new CartesianProduct(lengths)) {}
 }

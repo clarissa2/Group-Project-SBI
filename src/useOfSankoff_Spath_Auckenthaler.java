@@ -186,18 +186,23 @@ public class useOfSankoff_Spath_Auckenthaler {
             }
         }
 
-        sankoffTopDown((internalnodes));
+        List<List<List<String>>> pSets = new ArrayList<>();
+        //generate ChangeSets
+        pSets = sankoffTopDown((internalnodes));
+        System.out.println(pSets);
 
     }
 
 
-    public static void sankoffTopDown (List<Node>internalnodes){
-        Double inf = Double.POSITIVE_INFINITY;
+    public static List<List<List<String>>> sankoffTopDown (List<Node>internalnodes){
+
+        List<List<List<String>>> pSets= new ArrayList<>();
         //loop over different characters to get change List for each character
         for(int i=0; i<internalnodes.get(0).getParsimonyScores().size(); i++){
+            List<List<String>> pSetsPerC = new ArrayList<>();
+            List<String> pChanges = new ArrayList<>();
             //parsimony scores for each internal node for one character in a list
             List<double[]>parsimonyScores = new ArrayList<double[]>();
-            //List<Double>combScores = new ArrayList<>();
             int[] lengths = new int[internalnodes.size()];
             int n= 0;
             for(Node node:internalnodes){
@@ -205,43 +210,21 @@ public class useOfSankoff_Spath_Auckenthaler {
                 lengths[n]= node.getParsimonyScoresAtIndex(i).length;
                 n++;
             }
-            for (int q= 0;q<parsimonyScores.size();q++){
-                System.out.println(Arrays.toString(parsimonyScores.get(q)));
-                //double[]score= parsimonyScores.get(q);
-            }
             List<Double> pars= new ArrayList<Double>();
-
-            //loop over all possible combinations
-            for (int[] indices : new CartesianProduct(lengths)) {
-                //System.out.println(Arrays.toString(indices));
-                List<Integer> mins = indexOfMin(internalnodes.get(0).getParsimonyScoresAtIndex(i));
-                List<String> pChanges = new ArrayList<>();
-                //loop over parsimonyscores indices, which is also the length of index array
-                if(mins.contains(indices[0])){
-                    //all combinations based on CatesianProduct
-                    pars= helperScoresCombination(indices,parsimonyScores);
-
-                    //Only continue for values without infinity scores
-                    if(!pars.contains(inf)){
-                        boolean possible= false;
-                        //check values of leaf nodes
-                        System.out.println(Arrays.toString(indices));
-                        System.out.println(pars);
-
-                        //get possible way through the tree;
-
-
-                        //detect changes of possible ways
-                        pChanges= detectChanges(indices,pars, internalnodes,i);
-                        System.out.println(pChanges);
-                        System.out.println("");
-                    }
-                }
+            ArrayList<ArrayList<Integer>> paths = init_td(internalnodes, i);
+            for(int j=0; j<paths.size(); j++){
+                int[] ind=  paths.get(j).stream().mapToInt(q->q).toArray();
+                //System.out.println(Arrays.toString(ind));
+                pars= helperScoresCombination(ind,parsimonyScores);
+                pChanges= detectChanges(ind,pars, internalnodes,i);
+                System.out.println(pChanges);
+                System.out.println("");
+                pSetsPerC.add(pChanges);
             }
-
+            pSets.add(pSetsPerC);
         }
 
-
+        return pSets;
     }
 
 
@@ -251,9 +234,10 @@ public class useOfSankoff_Spath_Auckenthaler {
         int changeInStates= 0;
         List<String> pChanges = new ArrayList<>();
         Double inf = Double.POSITIVE_INFINITY;
+        System.out.println(Arrays.toString(indices));
         for(Node node:internalnodes){
             String x="";
-            System.out.println("N: "+n);
+            //System.out.println("N: "+n);
             Node left= node.getLeftChild();
             Node right= node.getRightChild();
             double[] sl; double[] sr; double l; double r;
@@ -269,7 +253,7 @@ public class useOfSankoff_Spath_Auckenthaler {
                     //System.out.println("Node:"+ node.getName()+" "+ "left: "+left.getName() +" "+l +"; "+right.getName()+" "+r);
                     if(l==inf&&r==inf)break;
                     if(l == inf){
-                        System.out.println("Transition Change");
+                        //System.out.println("Transition Change");
                         changeInStates=1;
                         for (int p=0; p<sl.length; p++) {
                             if(sl[p]!= inf){
@@ -284,7 +268,7 @@ public class useOfSankoff_Spath_Auckenthaler {
                     }
 
                     if(r == inf){
-                        System.out.println("Transition Change");
+                        //System.out.println("Transition Change");
                         changeInStates=1;
                         for (int p=0; p<sr.length; p++) {
                             if(sr[p]!= inf){
@@ -304,10 +288,10 @@ public class useOfSankoff_Spath_Auckenthaler {
                 l= pars.get(n+1);
                 sr= right.getParsimonyScoresAtIndex(i);
                 r= sr[index];
-                System.out.println("Node:"+ node.getName()+" "+ "left: "+left.getName() +" "+l +"; "+right.getName()+" "+r);
+                //System.out.println("Node:"+ node.getName()+" "+ "left: "+left.getName() +" "+l +"; "+right.getName()+" "+r);
                 if(l==checkscore&&r !=0)break;
                 if(r == inf){
-                    System.out.println("Transition Change");
+                    //System.out.println("Transition Change");
                     changeInStates=1;
                     for (int p=0; p<sr.length; p++) {
                         changeInStates=1;
@@ -322,7 +306,6 @@ public class useOfSankoff_Spath_Auckenthaler {
                     }
                 }
                 if(index != indices[n+1]){
-                    System.out.println("Proof this case");
                     changeInStates=1;
                     if(l+r+changeInStates==checkscore){
                         if(l==0&& index==1){
@@ -377,18 +360,20 @@ public class useOfSankoff_Spath_Auckenthaler {
                     if(x!=""){
                         pChanges.add(x);
                     }
-
                 }
             }
-
             n++;
         }
-        //System.out.println(pChanges);
         return pChanges;
 
     }
 
     public static boolean proofTransitionType(int index, int p){
+        /*
+        * returns type of transition
+        * int index= index of current Possible leafnode index
+        * int p = changed value
+        * */
         boolean lowHigh= false;
             if(index==0&&p==1){
                 lowHigh= true;}
@@ -398,6 +383,15 @@ public class useOfSankoff_Spath_Auckenthaler {
         return lowHigh;
     }
     public static String getChangeStatements(boolean lowHigh, double r, double l, int changeInStates, double checkscore, Node node, Node change){
+        /*
+        returns change statement for a case
+        r= value of right child
+        l= value of left child
+        changeInStates  = 1 if a transitionstate is detected
+        checkscore = score of the node at certain position
+        node= parent node
+        change = Node where change is detected
+         */
         String x= "";
         //No Change statement is not required only for testing purposes
         //if(checkscore==(l+r)){}
@@ -724,6 +718,99 @@ public class useOfSankoff_Spath_Auckenthaler {
 
         // The last node on the stack should be the root of the tree
         return root;
+    }
+    public static ArrayList<ArrayList<Integer>> init_td (List<Node>internal_nodes, int character){
+        ArrayList<ArrayList<Integer>> paths = new ArrayList<>();
+        ArrayList<Integer> states = new ArrayList<>();
+        double smallest = getMin(internal_nodes.get(0).getParsimonyScoresAtIndex(character));
+        // new lists with smallest scores
+        for (int i = 0; i < internal_nodes.get(0).getParsimonyScoresAtIndex(character).length; i++) {
+            if (internal_nodes.get(0).getParsimonyScoresAtIndex(character)[i] == smallest) {
+                ArrayList<Integer> new_list= new ArrayList<>();
+                new_list.add(i);
+                paths.add(new_list);
+                states.add(i);
+
+            }
+        }
+
+        return top_down(internal_nodes,character, paths);
+
+    }
+
+    public static ArrayList<ArrayList<Integer>> top_down (List<Node>internal_nodes, int character, ArrayList<ArrayList<Integer>> paths) {
+
+
+
+        for (int i = 1; i < internal_nodes.size(); i++) {
+            Node w_node = internal_nodes.get(i);
+            double[] scores_new1;
+            double[] scores_new2;
+            if (w_node == w_node.getParent().getLeftChild()) {
+                scores_new1 = w_node.getParent().getLeftChild().getParsimonyScoresAtIndex(character);
+                scores_new2 = w_node.getParent().getRightChild().getParsimonyScoresAtIndex(character);
+            }
+            else {
+                scores_new2 = w_node.getParent().getLeftChild().getParsimonyScoresAtIndex(character);
+                scores_new1 = w_node.getParent().getRightChild().getParsimonyScoresAtIndex(character);
+            }
+            double[] scores_old = w_node.getParent().getParsimonyScoresAtIndex(character);
+
+            for (Integer k = 0; k < 2; k++) {
+                for (int state_new1 = 0; state_new1 <= 2; state_new1++) {
+                    for (int state_new2 = 0; state_new2 <= 2; state_new2++) {
+
+                        if (isPath(k,state_new1,state_new2,scores_old[k],scores_new1[state_new1],scores_new2[state_new2])) {
+
+
+                            ArrayList<Integer> duplicate = new ArrayList<>();
+                            boolean cccr = false;
+                            Integer state_save = 0;
+                            // iterate paths
+                            for (ArrayList<Integer> path : paths) {
+                                if (k.equals(path.get(i - 1))) {
+                                    if (path.size() == i) {
+                                        path.add(state_new1);
+                                    }
+                                    else {
+                                        duplicate = path;
+                                        state_save = state_new1;
+                                        cccr = true;
+                                    }
+                                }
+                            }
+                            if (cccr) {
+                                ArrayList<Integer> duplicater = new ArrayList<>(duplicate);
+                                duplicater.set(i,state_save);
+                                paths.add(duplicater);
+                            }
+
+                        }
+                    }}
+
+            }
+        }
+        return paths;
+    }
+
+    public static boolean isPath (int old_state, int new_state1, int new_state2, Double old_score, Double new_score1, Double new_score2) {
+        if (old_state == new_state1 && old_state == new_state2 && new_score1 + new_score2 == old_score) return true;
+        if ((old_state == new_state1) && (old_score-1 == new_score2 + new_score1)) return true;
+        if ((old_state == new_state2) && (old_score-1 == new_score1 + new_score2)) return true;
+        else  return false;
+    }
+
+    public static double getMin (double[] array) {
+        double min = Double.MAX_VALUE;
+        int minIndex = -1;
+
+        for(int i = 0; i < array.length; i++) {
+            if (array[i] < min) {
+                min = array[i];
+                minIndex = i;
+            }
+        }
+        return min;
     }
 
 }
