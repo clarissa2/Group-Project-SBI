@@ -220,7 +220,6 @@ public class test {
 
             }
         }
-        //internal_nodes.get(0).setStatesAtIndex(states, character);
 
         return top_down(internal_nodes,character, paths);
 
@@ -231,9 +230,7 @@ public class test {
 
 
         for (int i = 1; i < internal_nodes.size(); i++) {
-            ArrayList<Integer> new_states = new ArrayList<>();
             Node w_node = internal_nodes.get(i);
-            //ArrayList<Integer> states_old = w_node.getParent().getStatesAtIndex(character);
             double[] scores_new1;
             double[] scores_new2;
             if (w_node == w_node.getParent().getLeftChild()) {
@@ -265,7 +262,6 @@ public class test {
                                 else {
                                     duplicate = path;
                                     state_save = state_new1;
-                                    //duplicate.add(i,state_new1);
                                     cccr = true;
                                 }
                             }
@@ -280,7 +276,6 @@ public class test {
                 }}
 
             }
-            //w_node.setStatesAtIndex(new_states, character);
         }
         return paths;
     }
