@@ -89,9 +89,6 @@ public class useOfSankoff_Spath_Auckenthaler {
         //2. Step create top down and bottom up ordered Lists of Nodes
         List<Node> list =new ArrayList<>();
         list= start.traversePreOrder(start,list);
-        for(Node n : list){
-            System.out.println(n.getName());
-        }
         List<Node> newlist =new ArrayList<>();
         newlist= reverseOrder(list);
 
@@ -245,7 +242,7 @@ public class useOfSankoff_Spath_Auckenthaler {
                     sr= right.getParsimonyScoresAtIndex(i);
                     l= sl[index];
                     r= sr[index];
-                    System.out.println("Node:"+ node.getName()+" "+ "left: "+left.getName() +" "+l +"; "+right.getName()+" "+r);
+                    //System.out.println("Node:"+ node.getName()+" "+ "left: "+left.getName() +" "+l +"; "+right.getName()+" "+r);
                     if(l==inf&&r==inf)break;
                     if(l == inf){
                         //System.out.println("Transition Change");
@@ -283,7 +280,7 @@ public class useOfSankoff_Spath_Auckenthaler {
                 l= pars.get(n+1);
                 sr= right.getParsimonyScoresAtIndex(i);
                 r= sr[index];
-                System.out.println("Node:"+ node.getName()+" "+ "left: "+left.getName() +" "+l +"; "+right.getName()+" "+r);
+                //System.out.println("Node:"+ node.getName()+" "+ "left: "+left.getName() +" "+l +"; "+right.getName()+" "+r);
                 if(l==checkscore&&r !=0)break;
                 if(r == inf){
                     //System.out.println("Transition Change");
@@ -324,7 +321,7 @@ public class useOfSankoff_Spath_Auckenthaler {
                 r= pars.get(n+1);
                 sl= left.getParsimonyScoresAtIndex(i);
                 l= sl[index];
-                System.out.println("Node:"+ node.getName()+" "+ "left: "+left.getName() +" "+l +"; "+right.getName()+" "+r);
+                //System.out.println("Node:"+ node.getName()+" "+ "left: "+left.getName() +" "+l +"; "+right.getName()+" "+r);
                 if(r==checkscore&& l !=0)break;
                 if(l == inf ) {
                     //System.out.println("Transition Change");
@@ -362,7 +359,7 @@ public class useOfSankoff_Spath_Auckenthaler {
                 sr= right.getParsimonyScoresAtIndex(i);
                 l= sl[index];
                 r= sr[index];
-                System.out.println("Node:"+ node.getName()+" "+ "left: "+left.getName() +" "+l +"; "+right.getName()+" "+r);
+                //System.out.println("Node:"+ node.getName()+" "+ "left: "+left.getName() +" "+l +"; "+right.getName()+" "+r);
                 if(l+r!=checkscore){
                     changeInStates=1;
 
@@ -392,7 +389,6 @@ public class useOfSankoff_Spath_Auckenthaler {
                             pChanges.add(x);
                         }
                     }
-
                 }
                 }
             n++;
