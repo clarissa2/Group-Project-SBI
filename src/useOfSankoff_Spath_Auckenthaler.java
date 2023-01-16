@@ -22,8 +22,9 @@ public class useOfSankoff_Spath_Auckenthaler {
 
 
         //set values
-        String newick = "(((Jaguarundi,Puma),Cheetah),Pallas)";
-        newick= newick.replace(" "," ");
+        //String newick = "(((Jaguarundi,Puma),Cheetah),Pallas)";
+        //newick= newick.replace(" "," ");
+        String newick = readNewick("test.newick");
         //sort of dollo-cost Matrix for 3 states
         double [][]weightMatrix = new double[][]{{0, 1, 1}, {1, 0, 1}, {inf, inf, 0}};
 
@@ -551,6 +552,22 @@ public class useOfSankoff_Spath_Auckenthaler {
 
         // The last node on the stack should be the root of the tree
         return root;
+    }
+    public static String readNewick(String csvFile) {
+        String line = "";
+        try {
+            File file = new File(csvFile);
+            FileReader fr = new FileReader(file);
+            BufferedReader br = new BufferedReader(fr);
+            line = br.readLine();
+            line.replaceAll("\\s+","");
+            System.out.println(line);
+            br.close();
+        } catch(IOException ioe) {
+            ioe.printStackTrace();
+        }
+
+        return line;
     }
     public static Dictionary<String, String[]> read_data(String csvFile) {
         Dictionary<String, String[]> characters_dic = new Hashtable<String, String[]>();
