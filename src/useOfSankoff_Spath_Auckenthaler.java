@@ -24,7 +24,7 @@ public class useOfSankoff_Spath_Auckenthaler {
         //set values
         //String newick = "(((Jaguarundi,Puma),Cheetah),Pallas)";
         //newick= newick.replace(" "," ");
-        String newick = readNewick("test.newick");
+        String newick = readNewick("t2.newick");
         //sort of dollo-cost Matrix for 3 states
         double [][]weightMatrix = new double[][]{{0, 1, 1}, {1, 0, 1}, {inf, inf, 0}};
 
@@ -42,10 +42,13 @@ public class useOfSankoff_Spath_Auckenthaler {
         characters_dic.put("Pallas", pallas);*/
 
         String[][] states= new String[][]{{"low","high","unknown"},{"28","30","unknown"}};
+        System.out.println(states.length);
 
         //read in from arguments
         if (args.length == 3) {
             newick = String.valueOf(args[0]);
+            characters_dic= read_data(args[1]);
+
         }
         else {
           //throw new IOException("Usage: useOfSankoff_Spath_Auckenthaler newick, matrix");
@@ -97,7 +100,7 @@ public class useOfSankoff_Spath_Auckenthaler {
         parents = initScores(newlist,states,characters_dic);
         //Update states of Parent states
         System.out.println();
-        updateScores(parents,weightMatrix);
+        updateScores(parents,states,weightMatrix);
 
         //4. Step implement top-down phase and expand it to get set of state-chages.
        List<Node> internalnodes= new ArrayList<Node>();
@@ -112,7 +115,7 @@ public class useOfSankoff_Spath_Auckenthaler {
         System.out.println();
         System.out.println("Detect change and type of change for each possible way and for each characteristics.");
         pSets = sankoffTopDown((internalnodes));
-        System.out.println(" Resulting sets from Sankoffs top down phase: ");
+        System.out.println("Resulting sets from Sankoffs top down phase: ");
         System.out.println(pSets);
 
         //5: Step generate Lists of state changes for all characteristics and compare each of them
@@ -454,7 +457,7 @@ public class useOfSankoff_Spath_Auckenthaler {
     }
 
     //get parsimonial scores for each internal node
-    public static void updateScores(List<Node>newlist, double [][]weightMatrix){
+    public static void updateScores(List<Node>newlist,String[][] states, double [][]weightMatrix){
         /**
          * Update the scores in bottom up phase of Sankoffs small parsimoies algorithm
          */
@@ -462,7 +465,8 @@ public class useOfSankoff_Spath_Auckenthaler {
                 Node childLeft = node.getLeftChild();
                 Node childRight = node.getRightChild();
                 ArrayList<double[]> PS = new ArrayList<double[]>();
-                for (int k = 0; k < childRight.getCharacterStates().length; k++) {
+                //newlist.get(0).getCharacterStates().length
+                for (int k = 0; k < states.length; k++) {
                     double[] sL = childLeft.getParsimonyScoresAtIndex(k);
                     double[] sR = childRight.getParsimonyScoresAtIndex(k);
                     ArrayList<Double> low_vectorLeft = new ArrayList<Double>();
