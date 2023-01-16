@@ -89,6 +89,9 @@ public class useOfSankoff_Spath_Auckenthaler {
         //2. Step create top down and bottom up ordered Lists of Nodes
         List<Node> list =new ArrayList<>();
         list= start.traversePreOrder(start,list);
+        for(Node n : list){
+            System.out.println(n.getName());
+        }
         List<Node> newlist =new ArrayList<>();
         newlist= reverseOrder(list);
 
@@ -242,7 +245,7 @@ public class useOfSankoff_Spath_Auckenthaler {
                     sr= right.getParsimonyScoresAtIndex(i);
                     l= sl[index];
                     r= sr[index];
-                    //System.out.println("Node:"+ node.getName()+" "+ "left: "+left.getName() +" "+l +"; "+right.getName()+" "+r);
+                    System.out.println("Node:"+ node.getName()+" "+ "left: "+left.getName() +" "+l +"; "+right.getName()+" "+r);
                     if(l==inf&&r==inf)break;
                     if(l == inf){
                         //System.out.println("Transition Change");
@@ -280,7 +283,7 @@ public class useOfSankoff_Spath_Auckenthaler {
                 l= pars.get(n+1);
                 sr= right.getParsimonyScoresAtIndex(i);
                 r= sr[index];
-                //System.out.println("Node:"+ node.getName()+" "+ "left: "+left.getName() +" "+l +"; "+right.getName()+" "+r);
+                System.out.println("Node:"+ node.getName()+" "+ "left: "+left.getName() +" "+l +"; "+right.getName()+" "+r);
                 if(l==checkscore&&r !=0)break;
                 if(r == inf){
                     //System.out.println("Transition Change");
@@ -321,7 +324,7 @@ public class useOfSankoff_Spath_Auckenthaler {
                 r= pars.get(n+1);
                 sl= left.getParsimonyScoresAtIndex(i);
                 l= sl[index];
-                //System.out.println("Node:"+ node.getName()+" "+ "left: "+left.getName() +" "+l +"; "+right.getName()+" "+r);
+                System.out.println("Node:"+ node.getName()+" "+ "left: "+left.getName() +" "+l +"; "+right.getName()+" "+r);
                 if(r==checkscore&& l !=0)break;
                 if(l == inf ) {
                     //System.out.println("Transition Change");
@@ -354,6 +357,44 @@ public class useOfSankoff_Spath_Auckenthaler {
                     }
                 }
             }
+            else if(internalnodes.contains(left)&&internalnodes.contains(right)){
+                sl= left.getParsimonyScoresAtIndex(i);
+                sr= right.getParsimonyScoresAtIndex(i);
+                l= sl[index];
+                r= sr[index];
+                System.out.println("Node:"+ node.getName()+" "+ "left: "+left.getName() +" "+l +"; "+right.getName()+" "+r);
+                if(l+r!=checkscore){
+                    changeInStates=1;
+
+                    if(l+changeInStates==checkscore){
+                        if(index==1){
+                            lowHigh= false;
+                        }
+                        if(index==0){
+                            lowHigh= true;
+                        }
+                        if(lowHigh){ x= node.getName().toLowerCase()+" ---> "+right.getName().toUpperCase();}
+                        else{ x= node.getName().toUpperCase()+" ---> "+right.getName().toLowerCase();}
+                        if(x!=""){
+                            pChanges.add(x);
+                        }
+                    }
+                    if(r+changeInStates==checkscore){
+                        if(index==1){
+                            lowHigh= false;
+                        }
+                        if(index==0){
+                            lowHigh= true;
+                        }
+                        if(lowHigh){ x= node.getName().toLowerCase()+" ---> "+left.getName().toUpperCase();}
+                        else{ x= node.getName().toUpperCase()+" ---> "+left.getName().toLowerCase();}
+                        if(x!=""){
+                            pChanges.add(x);
+                        }
+                    }
+
+                }
+                }
             n++;
         }
         return pChanges;
@@ -374,6 +415,7 @@ public class useOfSankoff_Spath_Auckenthaler {
             }
         return lowHigh;
     }
+
     public static String getChangeStatements(boolean lowHigh, double r, double l, int changeInStates, double checkscore, Node node, Node change){
         /**
          * returns change statement for a case
