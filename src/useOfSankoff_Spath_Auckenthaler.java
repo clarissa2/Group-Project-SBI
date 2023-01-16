@@ -92,9 +92,10 @@ public class useOfSankoff_Spath_Auckenthaler {
         //new List of parent Nodes
         List<Node> parents = new ArrayList<>();
 
-        //3. Step initalise states
+        //3. Step initialise states
         parents = initScores(newlist,states,characters_dic);
         //Update states of Parent states
+        System.out.println();
         updateScores(parents,weightMatrix);
 
         //4. Step implement top-down phase and expand it to get set of state-chages.
@@ -107,12 +108,13 @@ public class useOfSankoff_Spath_Auckenthaler {
 
         List<List<List<String>>> pSets = new ArrayList<>();
         //generate ChangeSets
+        System.out.println();
+        System.out.println("Detect change and type of change for each possible way and for each characteristics.");
         pSets = sankoffTopDown((internalnodes));
-
         System.out.println(" Resulting sets from Sankoffs top down phase: ");
         System.out.println(pSets);
 
-        //5: Step generate Lists of state changes for all characteristcs and compare each of them
+        //5: Step generate Lists of state changes for all characteristics and compare each of them
         List<List<String>> SetLowHigh = new ArrayList<>();
         List<List<String>> SetHighLow = new ArrayList<>();
         //filter sets for changeTypes
@@ -137,23 +139,46 @@ public class useOfSankoff_Spath_Auckenthaler {
         //6. Step: Calculate jaccard index between eacht combination of states
         //Change 0 --> 1:
         System.out.println();
-        System.out.println("Weighted JaccardIndex for change 0 --> 1");
+        System.out.println("Weighted JaccardIndex for change 0 --> 1 in both characteristics A & B");
         for(int i=0; i<SetLowHigh.size()-1; i++){
             for (int j= 1; j<SetLowHigh.size(); j++){
                 double jc=  computeJaccardIndex(SetLowHigh.get(i),SetLowHigh.get(j));
+                System.out.println("Character A= "+i +", Character B= "+j);
                 System.out.println(SetLowHigh.get(i)+" "+SetLowHigh.get(j)+" "+jc);
             }
         }
         System.out.println();
-        System.out.println("Weighted JaccardIndex for change 1 --> 0");
+        System.out.println("Weighted JaccardIndex for change 1 --> 0 in both characteristics A & B");
         //Change 1 -->0:
         for(int i=0; i<SetHighLow.size()-1; i++){
             for (int j= 1; j<SetHighLow.size(); j++){
                 double jc=  computeJaccardIndex(SetHighLow.get(i),SetHighLow.get(j));
+                System.out.println("Character A= "+i +", Character B= "+j);
                 System.out.println(SetHighLow.get(i)+" & "+SetHighLow.get(j)+" = "+jc);
             }
         }
 
+        System.out.println();
+        System.out.println("Weighted JaccardIndex for change 1 --> 0 for characteristic A and 0-->1 characteristic B");
+        //Change 1 -->0:
+        for(int i=0; i<SetHighLow.size()-1; i++){
+            for (int j= 1; j<SetLowHigh.size(); j++){
+                double jc=  computeJaccardIndex(SetHighLow.get(i),SetLowHigh.get(j));
+                System.out.println("Character A= "+i +", Character B= "+j);
+                System.out.println(SetHighLow.get(i)+" & "+SetLowHigh.get(j)+" = "+jc);
+            }
+        }
+
+        System.out.println();
+        System.out.println("Weighted JaccardIndex for change 0--> 1 for characteristic A and 1-->0 characteristic B");
+        //Change 1 -->0:
+        for(int i=0; i< SetLowHigh.size()-1; i++){
+            for (int j= 1; j<SetHighLow.size(); j++){
+                double jc=  computeJaccardIndex(SetLowHigh.get(i),SetHighLow.get(j));
+                System.out.println("Character A= "+i +", Character B= "+j);
+                System.out.println(SetLowHigh.get(i)+" & "+SetHighLow.get(j)+" = "+jc);
+            }
+        }
 
     }
 
@@ -251,7 +276,7 @@ public class useOfSankoff_Spath_Auckenthaler {
                 l= pars.get(n+1);
                 sr= right.getParsimonyScoresAtIndex(i);
                 r= sr[index];
-                System.out.println("Node:"+ node.getName()+" "+ "left: "+left.getName() +" "+l +"; "+right.getName()+" "+r);
+                //System.out.println("Node:"+ node.getName()+" "+ "left: "+left.getName() +" "+l +"; "+right.getName()+" "+r);
                 if(l==checkscore&&r !=0)break;
                 if(r == inf){
                     //System.out.println("Transition Change");
@@ -270,10 +295,8 @@ public class useOfSankoff_Spath_Auckenthaler {
                 }
 
                 if(index != indices[n+1]&& r==0){
-                    System.out.println(index+" "+ indices[n+1]);
                     changeInStates=1;
                     if(l+r+changeInStates==checkscore){
-                        System.out.println("Proof");
                         if(index==0 && indices[n+1]==1){
                             lowHigh= true;
                         }
@@ -476,7 +499,7 @@ public class useOfSankoff_Spath_Auckenthaler {
                 node.setParsimonyScores(PS);
         }
     }
-    
+
     public static Node parseNewick(String newick, Dictionary<String, String[]> characters_dic) {
         // Use a stack to keep track of the nodes as we build the tree
         Stack<Node> stack = new Stack<>();
