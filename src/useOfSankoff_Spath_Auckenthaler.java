@@ -520,7 +520,7 @@ public class useOfSankoff_Spath_Auckenthaler {
         // Initialize some variables to keep track of the current node and its properties
         Node current = null;
         Node root = null;
-        int ascii = 90;
+        int ascii = 65;
 
         // Loop through the characters in the Newick string
         for (int i = 0; i < newick.length(); i++) {
@@ -529,7 +529,7 @@ public class useOfSankoff_Spath_Auckenthaler {
             // If the character is an opening parenthesis, create a new node and push it onto the stack
             if (c == '(') {
                 current = new Node(Character.toString((char) ascii));
-                ascii--;
+                ascii++;
                 if (!stack.isEmpty()) {
                     stack.peek().addChild(current);
                 }
