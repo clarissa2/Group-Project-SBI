@@ -2,7 +2,7 @@ import java.util.*;
 
 public class newickParser {
     public static void main(String[] args) {
-        Node root = parseNewick("(((Jaguarundi,Puma),Cheetah),Pallas)");
+        Node root = parseNewick("((((Lion,Leopard),Jaguar),(Tiger,SnowLeopard)),CloudedLeopard)");
 
         printTree(root);
     }
@@ -45,7 +45,6 @@ public class newickParser {
              }
             // If the character is a closing parenthesis pop node from stack
              else if (c == ')') {
-                 i++;
                  stack.pop();
              }
              else if (Character.isLetterOrDigit(c)) { // if any other character is encountered create new node (leaf)

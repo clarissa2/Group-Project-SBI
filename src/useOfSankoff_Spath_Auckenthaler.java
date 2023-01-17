@@ -22,16 +22,16 @@ public class useOfSankoff_Spath_Auckenthaler {
 
 
         // read the string
-        String newick = readNewick("t2.newick");
+        String newick = readNewick("pantherinae.newick");
         //sort of dollo-cost Matrix for 3 states
         double [][]weightMatrix = new double[][]{{0, 1, 1}, {1, 0, 1}, {inf, inf, 0}};
 
         //create dictionary of animals and their states
-        Dictionary<String, String[]> characters_dic = read_data("test_data.csv");
+        Dictionary<String, String[]> characters_dic = read_data("data_pantherinae.csv");
 
         // read states
         //String[][] states = new String[][]{{"low","high","unknown"},{"28","30","unknown"}};
-        String[][] states = read_states("states.csv");
+        String[][] states = read_states("states-pantherinae.csv");
         System.out.println(states.length);
 
         //read in from arguments
@@ -542,7 +542,6 @@ public class useOfSankoff_Spath_Auckenthaler {
             }
             // If the character is a closing parenthesis pop node from stack
             else if (c == ')') {
-                i++;
                 stack.pop();
             }
             else if (Character.isLetterOrDigit(c)) { // if any other character is encountered create new node (leaf)
