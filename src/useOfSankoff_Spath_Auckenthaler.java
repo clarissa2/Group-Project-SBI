@@ -543,6 +543,12 @@ public class useOfSankoff_Spath_Auckenthaler {
         }
     }
 
+    /**
+     * Function to parse a newick String and assigning the characters to the leafes
+     * @param newick the newick String
+     * @param characters_dic the characters associated to each leaf
+     * @return the root node of the tree
+     */
     public static Node parseNewick(String newick, Dictionary<String, String[]> characters_dic) {
         // Use a stack to keep track of the nodes as we build the tree
         Stack<Node> stack = new Stack<>();
@@ -595,12 +601,19 @@ public class useOfSankoff_Spath_Auckenthaler {
         // The last node on the stack should be the root of the tree
         return root;
     }
+
+    /**
+     * reads the file with the newick String in it
+     * @param csvFile The path to the file
+     * @return newick String
+     */
     public static String readNewick(String csvFile) {
         String line = "";
         try {
             File file = new File(csvFile);
             FileReader fr = new FileReader(file);
             BufferedReader br = new BufferedReader(fr);
+            // string is in the first line
             line = br.readLine();
             line.replaceAll("\\s+","");
             System.out.println(line);
@@ -611,6 +624,13 @@ public class useOfSankoff_Spath_Auckenthaler {
 
         return line;
     }
+
+    /**
+     * reads in the character states associated with each Taxa
+     * format: Taxa,character1,charracter2
+     * @param csvFile The path to the file
+     * @return a dictionary of the characters, the key being the name of the taxon
+     */
     public static Dictionary<String, String[]> read_data(String csvFile) {
         Dictionary<String, String[]> characters_dic = new Hashtable<String, String[]>();
         try {
@@ -620,8 +640,10 @@ public class useOfSankoff_Spath_Auckenthaler {
             String line = "";
             String[] tempArr;
             while((line = br.readLine()) != null) {
+                // split the lines by comma
                 tempArr = line.split(",");
                 int end = tempArr.length;
+                // the first column is the taxa, the rest are the characters
                 characters_dic.put(tempArr[0], Arrays.copyOfRange(tempArr, 1, end));
             }
             br.close();
@@ -630,17 +652,23 @@ public class useOfSankoff_Spath_Auckenthaler {
         }
         return characters_dic;
     }
+
+    /**
+     * initializes the matrix for the top down face of the sankoff algorithm
+     * @param internal_nodes list of the internal nodes, starting from the root with left children first
+     * @param character the index of the character in the characters_dic
+     * @return a matrix of all possible paths in order of the internal nodes
+     */
     public static ArrayList<ArrayList<Integer>> init_td (List<Node>internal_nodes, int character){
         ArrayList<ArrayList<Integer>> paths = new ArrayList<>();
-        ArrayList<Integer> states = new ArrayList<>();
+        // get the smallest parsimony scores ot the root node
         double smallest = getMin(internal_nodes.get(0).getParsimonyScoresAtIndex(character));
-        // new lists with smallest scores
+        // new lists with smallest scores in the root node (indices are states)
         for (int i = 0; i < internal_nodes.get(0).getParsimonyScoresAtIndex(character).length; i++) {
             if (internal_nodes.get(0).getParsimonyScoresAtIndex(character)[i] == smallest) {
                 ArrayList<Integer> new_list= new ArrayList<>();
                 new_list.add(i);
                 paths.add(new_list);
-                states.add(i);
 
             }
         }
@@ -649,12 +677,20 @@ public class useOfSankoff_Spath_Auckenthaler {
 
     }
 
+    /**
+     * computes all paths of the top down Sankoff for the internal nodes
+     * @param internal_nodes list of the internal nodes, starting from the root with left children first
+     * @param character the index of the character in the characters_dic
+     * @param paths the initialized matrix of all possible paths in order of the internal nodes
+     * @return a matrix of all possible paths in order of the internal nodes
+     */
     public static ArrayList<ArrayList<Integer>> top_down (List<Node>internal_nodes, int character, ArrayList<ArrayList<Integer>> paths) {
-
+        // iterate over all internal nodes starting with the second one (first used for initialization
         for (int i = 1; i < internal_nodes.size(); i++) {
             Node w_node = internal_nodes.get(i);
             double[] scores_new1;
             double[] scores_new2;
+            // assign the scores of the current node to scores_new1 and its neighbor to the other one
             if (w_node == w_node.getParent().getLeftChild()) {
                 scores_new1 = w_node.getParent().getLeftChild().getParsimonyScoresAtIndex(character);
                 scores_new2 = w_node.getParent().getRightChild().getParsimonyScoresAtIndex(character);
@@ -663,24 +699,29 @@ public class useOfSankoff_Spath_Auckenthaler {
                 scores_new2 = w_node.getParent().getLeftChild().getParsimonyScoresAtIndex(character);
                 scores_new1 = w_node.getParent().getRightChild().getParsimonyScoresAtIndex(character);
             }
+            // assign the scores of the parent
             double[] scores_old = w_node.getParent().getParsimonyScoresAtIndex(character);
-
+            // iterate all states to get all possible combinations
+            // iterate over all possible states (always 3) of the parent
             for (Integer k = 0; k < 2; k++) {
+                // iterate over all possible states of the child
                 for (int state_new1 = 0; state_new1 <= 2; state_new1++) {
+                    // iterate over all possible states of the other child
                     for (int state_new2 = 0; state_new2 <= 2; state_new2++) {
-
+                        // check if combination is possible
                         if (isPath(k,state_new1,state_new2,scores_old[k],scores_new1[state_new1],scores_new2[state_new2])) {
-
-
                             ArrayList<Integer> duplicate = new ArrayList<>();
                             boolean cccr = false;
                             Integer state_save = 0;
-                            // iterate paths
+                            // iterate existing paths
                             for (ArrayList<Integer> path : paths) {
+                                // if the parent state exists in the current path
                                 if (k.equals(path.get(i - 1))) {
+                                    // add new state to path if nothing was assigned yet
                                     if (path.size() == i) {
                                         path.add(state_new1);
                                     }
+                                    // save the path to duplicate it later and add the other possible state
                                     else {
                                         duplicate = path;
                                         state_save = state_new1;
@@ -688,20 +729,30 @@ public class useOfSankoff_Spath_Auckenthaler {
                                     }
                                 }
                             }
+                            // duplicate the saved path and replace corresponding state
                             if (cccr) {
                                 ArrayList<Integer> duplicater = new ArrayList<>(duplicate);
                                 duplicater.set(i,state_save);
                                 paths.add(duplicater);
                             }
-
                         }
-                    }}
-
+                    }
+                }
             }
         }
         return paths;
     }
 
+    /**
+     * computes if one step in the path (top down) is possible
+     * @param old_state state of the parent
+     * @param new_state1 state of child1
+     * @param new_state2 state of child2
+     * @param old_score score of the parent
+     * @param new_score1 score of child1
+     * @param new_score2 score of child2
+     * @return boolean that is true if step is possible
+     */
     public static boolean isPath (int old_state, int new_state1, int new_state2, Double old_score, Double new_score1, Double new_score2) {
         if (old_state == new_state1 && old_state == new_state2 && new_score1 + new_score2 == old_score) return true;
         if ((old_state == new_state1) && (old_score-1 == new_score2 + new_score1)) return true;
@@ -709,6 +760,11 @@ public class useOfSankoff_Spath_Auckenthaler {
         else  return false;
     }
 
+    /**
+     * computes the smallest value in an array
+     * @param array primitive double array
+     * @return smallest value in array
+     */
     public static double getMin (double[] array) {
         double min = Double.MAX_VALUE;
         int minIndex = -1;
