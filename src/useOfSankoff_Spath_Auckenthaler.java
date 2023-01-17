@@ -21,27 +21,17 @@ public class useOfSankoff_Spath_Auckenthaler {
         Double inf = Double.POSITIVE_INFINITY;
 
 
-        //set values
-        //String newick = "(((Jaguarundi,Puma),Cheetah),Pallas)";
-        //newick= newick.replace(" "," ");
+        // read the string
         String newick = readNewick("t2.newick");
         //sort of dollo-cost Matrix for 3 states
         double [][]weightMatrix = new double[][]{{0, 1, 1}, {1, 0, 1}, {inf, inf, 0}};
 
         //create dictionary of animals and their states
         Dictionary<String, String[]> characters_dic = read_data("test_data.csv");
-        /*Dictionary<String, String[]> characters_dic = new Hashtable<String, String[]>();
-        String[] puma= new String[] {"high","30"};
-        String[] jaguarundi= new String[] {"low","30"};
-        String[] cheetah= new String[] {"high","30"};
-        String[] pallas= new String[] {"low","28"};
 
-        characters_dic.put("Puma", puma);
-        characters_dic.put("Jaguarundi", jaguarundi);
-        characters_dic.put("Cheetah", cheetah);
-        characters_dic.put("Pallas", pallas);*/
-
-        String[][] states= new String[][]{{"low","high","unknown"},{"28","30","unknown"}};
+        // read states
+        //String[][] states = new String[][]{{"low","high","unknown"},{"28","30","unknown"}};
+        String[][] states = read_states("states.csv");
         System.out.println(states.length);
 
         //read in from arguments
@@ -59,32 +49,6 @@ public class useOfSankoff_Spath_Auckenthaler {
         // this start is the root node
         Node start = parseNewick(newick, characters_dic);
 
-        //1. Step make tree
-        //NEED TO BE CREATED BY NEWICK
-       /* Node X = new Node("X");
-        Node Pallas = new Node("Pallas");
-        Node Y = new Node("Y");
-        Node Cheetah = new Node ("Cheetah");
-        Node Z= new Node("Z");
-        Node Jaguarundi= new Node("Jaguarundi");
-        Node Puma= new Node("Puma");*/
-
-        /*X.addChild(Pallas);
-        X.addChild(Y);
-        Pallas.setParent(X);
-        Pallas.setCharacterStates(characters_dic);
-        Y.addChild(Cheetah);
-        Y.addChild(Z);
-        Y.setParent(X);
-        Cheetah.setParent(Y);
-        Cheetah.setCharacterStates(characters_dic);
-        Z.setParent(Y);
-        Z.addChild(Jaguarundi);
-        Z.addChild(Puma);
-        Puma.setParent(Z);
-        Puma.setCharacterStates(characters_dic);
-        Jaguarundi.setParent(Z);
-        Jaguarundi.setCharacterStates(characters_dic);*/
 
         //2. Step create top down and bottom up ordered Lists of Nodes
         List<Node> list =new ArrayList<>();
@@ -626,8 +590,8 @@ public class useOfSankoff_Spath_Auckenthaler {
     }
 
     /**
-     * reads in the character states associated with each Taxa
-     * format: Taxa,character1,charracter2
+     * reads in the character states associated with each taxon
+     * format: Taxa,character1,character2
      * @param csvFile The path to the file
      * @return a dictionary of the characters, the key being the name of the taxon
      */
@@ -654,6 +618,38 @@ public class useOfSankoff_Spath_Auckenthaler {
     }
 
     /**
+     * reads the possible states from a file
+     * format: each line: low_state,high_state,unknown
+     * same order as in character state data
+     * @param csvFile path to the file
+     * @return matrix of existing states
+     */
+    public static String[][] read_states(String csvFile) {
+        ArrayList<String[]> states = new ArrayList<>();
+        try {
+            File file = new File(csvFile);
+            FileReader fr = new FileReader(file);
+            BufferedReader br = new BufferedReader(fr);
+            String line = "";
+            String[] tempArr;
+            while((line = br.readLine()) != null) {
+                // split the lines by comma
+                tempArr = line.split(",");
+                // add to matrix
+                states.add(tempArr);
+            }
+            br.close();
+        } catch(IOException ioe) {
+            ioe.printStackTrace();
+        }
+        String[][] r_states = new String[states.size()][];
+        for (int i = 0; i < states.size(); i++) {
+            r_states[i] = states.get(i);
+        }
+        return r_states;
+    }
+
+    /**
      * initializes the matrix for the top down face of the sankoff algorithm
      * @param internal_nodes list of the internal nodes, starting from the root with left children first
      * @param character the index of the character in the characters_dic
@@ -669,12 +665,9 @@ public class useOfSankoff_Spath_Auckenthaler {
                 ArrayList<Integer> new_list= new ArrayList<>();
                 new_list.add(i);
                 paths.add(new_list);
-
             }
         }
-
         return top_down(internal_nodes,character, paths);
-
     }
 
     /**
