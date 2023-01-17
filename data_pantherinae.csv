@@ -1,0 +1,6 @@
+Lion,prides,long,long,long,absent,30,long
+Leopard,solitarity,long,short,long,present,32,long
+Jaguar,solitarity,long,unknown,long,absent,30,short
+Tiger,solitarity,long,long,long,present,30,long
+SnowLeopard,solitarity,short,long,long,absent,32,long
+CloudedLeopard,solitarity,short,short,short,present,32,short
