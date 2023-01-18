@@ -429,25 +429,24 @@ public class useOfSankoff_Spath_Auckenthaler {
 
     public static double computeJaccardIndex( List<String> A, List<String> B, int i , int j) {
         // from assignment07 Sequence Bioinfromatics
-        System.out.println("Character A= " + i + ", Character B= " + j);
+
         List<String> union= new ArrayList<String>(A);
         Set<String> intersect = new HashSet<>(A);
         for(String s :B){if(!union.contains(s)){union.add(s);}}
         intersect.retainAll(B);
         intersect.retainAll(union);
-        System.out.println("Union: "+ union);
-        System.out.println("Intersect: "+ intersect);
 
         double unionSize = union.size();
         double intersectionSize = intersect.size();
         double jc = intersectionSize/unionSize;
         if(jc!= 0.0){
+            System.out.println("Character A= " + i + ", Character B= " + j);
+            System.out.println("Union: "+ union);
+            System.out.println("Intersect: "+ intersect);
             System.out.println("Weighted Jaccard Index: "+ jc);
+            System.out.println("");
         }
-        else{
-            System.out.println("No Correlation");
-        }
-        System.out.println();
+
         return jc;
     }
 
