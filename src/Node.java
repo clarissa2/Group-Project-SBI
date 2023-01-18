@@ -7,13 +7,12 @@ public class Node {
     private String name;
     private String[] characterStates;
     private ArrayList<double[]> parsimonyScores;
-    private Node lChange;
-    private Node rChange;
-    private List<Node> lowchange= new ArrayList<Node>();
-    private List<Node> highchange= new ArrayList<Node>();
+    //private Node lChange;
+    //private Node rChange;
+    //private List<Node> lowchange= new ArrayList<Node>();
+    //private List<Node> highchange= new ArrayList<Node>();
 
     public Node(String name) {
-        //this.nodeID = nodeID;
         this.left = null;
         this.right = null;
         this.parent = null;
@@ -49,21 +48,12 @@ public class Node {
     public void setName(String name) {
         this.name = name;
     }
-    public void setlChange(Node node){
-        this.lChange = node;
-    }
-    public void setrChange(Node node) {
-        this.rChange = node;
-    }
-    public Node getlChange() {
-        return lChange;
-    }
-    public Node getrChange() {
-        return rChange;
-    }
-    public String getCharacterStates(int ind){
-        return this.characterStates[ind];
-    }
+    //public void setlChange(Node node){this.lChange = node;}
+    //public void setrChange(Node node) {this.rChange = node;}
+    //public Node getlChange() {return lChange;}
+    //public Node getrChange() {return rChange;}
+
+    public String getCharacterStates(int ind){return this.characterStates[ind];}
 
     public void setCharacterStates(Dictionary<String,String[]> dictionary){
         this.characterStates = dictionary.get(this.name);

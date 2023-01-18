@@ -106,45 +106,55 @@ public class useOfSankoff_Spath_Auckenthaler {
 
         //6. Step: Calculate jaccard index between eacht combination of states
         //Change 0 --> 1:
-        System.out.println();
-        System.out.println("Weighted JaccardIndex for change 0 --> 1 in both characteristics A & B");
+        System.out.println(); System.out.println();
+        System.out.println("Weighted JaccardIndex for change 0 --> 1 in both characteristics alpha & beta");
         for(int i=0; i<SetLowHigh.size()-1; i++){
             for (int j= 1; j<SetLowHigh.size(); j++){
-                double jc=  computeJaccardIndex(SetLowHigh.get(i),SetLowHigh.get(j));
-                System.out.println("Character A= "+i +", Character B= "+j);
-                System.out.println(SetLowHigh.get(i)+" "+SetLowHigh.get(j)+" "+jc);
+                if(i!=j) {
+                    double jc = computeJaccardIndex(SetLowHigh.get(i), SetLowHigh.get(j),i,j);
+                   // System.out.println("Character A= " + i + ", Character B= " + j);
+                    //System.out.println(SetLowHigh.get(i) + " " + SetLowHigh.get(j) + " " + jc);
+                }
             }
         }
-        System.out.println();
-        System.out.println("Weighted JaccardIndex for change 1 --> 0 in both characteristics A & B");
+        System.out.println(); System.out.println();
+
+        System.out.println("Weighted JaccardIndex for change 1 --> 0 in both characteristics alpha & beta");
         //Change 1 -->0:
         for(int i=0; i<SetHighLow.size()-1; i++){
             for (int j= 1; j<SetHighLow.size(); j++){
-                double jc=  computeJaccardIndex(SetHighLow.get(i),SetHighLow.get(j));
-                System.out.println("Character A= "+i +", Character B= "+j);
-                System.out.println(SetHighLow.get(i)+" & "+SetHighLow.get(j)+" = "+jc);
+                if(i!=j){
+                    double jc=  computeJaccardIndex(SetHighLow.get(i),SetHighLow.get(j),i,j);
+                    //System.out.println("Character A= "+i +", Character B= "+j);
+                    //System.out.println(SetHighLow.get(i)+" & "+SetHighLow.get(j)+" = "+jc);
+                }
+
             }
         }
 
-        System.out.println();
-        System.out.println("Weighted JaccardIndex for change 1 --> 0 for characteristic A and 0-->1 characteristic B");
+        System.out.println(); System.out.println();
+        System.out.println("Weighted JaccardIndex for change 1 --> 0 for characteristic alpha and 0-->1 characteristic beta");
         //Change 1 -->0:
         for(int i=0; i<SetHighLow.size()-1; i++){
             for (int j= 1; j<SetLowHigh.size(); j++){
-                double jc=  computeJaccardIndex(SetHighLow.get(i),SetLowHigh.get(j));
-                System.out.println("Character A= "+i +", Character B= "+j);
-                System.out.println(SetHighLow.get(i)+" & "+SetLowHigh.get(j)+" = "+jc);
+                if(i!=j) {
+                    double jc = computeJaccardIndex(SetHighLow.get(i), SetLowHigh.get(j),i,j);
+                    //System.out.println("Character A= " + i + ", Character B= " + j);
+                    //System.out.println(SetHighLow.get(i) + " & " + SetLowHigh.get(j) + " = " + jc);
+                }
             }
         }
 
-        System.out.println();
-        System.out.println("Weighted JaccardIndex for change 0--> 1 for characteristic A and 1-->0 characteristic B");
+        System.out.println(); System.out.println();
+        System.out.println("Weighted JaccardIndex for change 0--> 1 for characteristic alpha and 1-->0 characteristic beta");
         //Change 1 -->0:
         for(int i=0; i< SetLowHigh.size()-1; i++){
             for (int j= 1; j<SetHighLow.size(); j++){
-                double jc=  computeJaccardIndex(SetLowHigh.get(i),SetHighLow.get(j));
-                System.out.println("Character A= "+i +", Character B= "+j);
-                System.out.println(SetLowHigh.get(i)+" & "+SetHighLow.get(j)+" = "+jc);
+                if(i!=j) {
+                    double jc = computeJaccardIndex(SetLowHigh.get(i), SetHighLow.get(j),i,j);
+                    //System.out.println("Character A= " + i + ", Character B= " + j);
+                    //System.out.println(SetLowHigh.get(i) + " & " + SetHighLow.get(j) + " = " + jc);
+                }
             }
         }
 
@@ -155,6 +165,7 @@ public class useOfSankoff_Spath_Auckenthaler {
         List<List<List<String>>> pSets= new ArrayList<>();
         //loop over different characters to get change List for each character
         for(int i=0; i<internalnodes.get(0).getParsimonyScores().size(); i++){
+            System.out.println("Characteristic:" + i);
             List<List<String>> pSetsPerC = new ArrayList<>();
             List<String> pChanges = new ArrayList<>();
             //parsimony scores for each internal node for one character in a list
@@ -408,17 +419,27 @@ public class useOfSankoff_Spath_Auckenthaler {
     }
 
 
-    public static double computeJaccardIndex( List<String> A, List<String> B) {
+    public static double computeJaccardIndex( List<String> A, List<String> B, int i , int j) {
         // from assignment07 Sequence Bioinfromatics
+        System.out.println("Character A= " + i + ", Character B= " + j);
         List<String> union= new ArrayList<String>(A);
         Set<String> intersect = new HashSet<>(A);
         for(String s :B){if(!union.contains(s)){union.add(s);}}
         intersect.retainAll(B);
         intersect.retainAll(union);
+        System.out.println("Union: "+ union);
+        System.out.println("Intersect: "+ intersect);
 
         double unionSize = union.size();
         double intersectionSize = intersect.size();
         double jc = intersectionSize/unionSize;
+        if(jc!= 0.0){
+            System.out.println("Weighted Jaccard Index: "+ jc);
+        }
+        else{
+            System.out.println("No Correlation");
+        }
+        System.out.println();
         return jc;
     }
 
