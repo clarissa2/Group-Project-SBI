@@ -114,427 +114,50 @@ public class useOfSankoff_Spath_Auckenthaler {
 
         //6. Step: Calculate jaccard index between eacht combination of states
         //Change 0 --> 1:
-        System.out.println(); System.out.println();
+        System.out.println();
         System.out.println("Weighted JaccardIndex for change 0 --> 1 in both characteristics alpha & beta");
         for(int i=0; i<SetLowHigh.size()-1; i++){
             for (int j= 1; j<SetLowHigh.size(); j++){
                 if(i!=j) {
                     double jc = computeJaccardIndex(SetLowHigh.get(i), SetLowHigh.get(j),i,j);
-                   // System.out.println("Character A= " + i + ", Character B= " + j);
-                    //System.out.println(SetLowHigh.get(i) + " " + SetLowHigh.get(j) + " " + jc);
                 }
             }
         }
-        System.out.println(); System.out.println();
-
+        System.out.println();
         System.out.println("Weighted JaccardIndex for change 1 --> 0 in both characteristics alpha & beta");
         //Change 1 -->0:
         for(int i=0; i<SetHighLow.size()-1; i++){
             for (int j= 1; j<SetHighLow.size(); j++){
                 if(i!=j){
                     double jc=  computeJaccardIndex(SetHighLow.get(i),SetHighLow.get(j),i,j);
-                    //System.out.println("Character A= "+i +", Character B= "+j);
-                    //System.out.println(SetHighLow.get(i)+" & "+SetHighLow.get(j)+" = "+jc);
                 }
 
             }
         }
 
-        System.out.println(); System.out.println();
+        System.out.println();
         System.out.println("Weighted JaccardIndex for change 1 --> 0 for characteristic alpha and 0-->1 characteristic beta");
-        //Change 1 -->0:
+        //Change 1 -->0 & 0-->1:
         for(int i=0; i<SetHighLow.size()-1; i++){
             for (int j= 1; j<SetLowHigh.size(); j++){
                 if(i!=j) {
                     double jc = computeJaccardIndex(SetHighLow.get(i), SetLowHigh.get(j),i,j);
-                    //System.out.println("Character A= " + i + ", Character B= " + j);
-                    //System.out.println(SetHighLow.get(i) + " & " + SetLowHigh.get(j) + " = " + jc);
                 }
             }
         }
 
-        System.out.println(); System.out.println();
+        System.out.println();
         System.out.println("Weighted JaccardIndex for change 0--> 1 for characteristic alpha and 1-->0 characteristic beta");
-        //Change 1 -->0:
+        //Change 0--> 1 and 1 -->0:
         for(int i=0; i< SetLowHigh.size()-1; i++){
             for (int j= 1; j<SetHighLow.size(); j++){
                 if(i!=j) {
                     double jc = computeJaccardIndex(SetLowHigh.get(i), SetHighLow.get(j),i,j);
-                    //System.out.println("Character A= " + i + ", Character B= " + j);
-                    //System.out.println(SetLowHigh.get(i) + " & " + SetHighLow.get(j) + " = " + jc);
                 }
             }
         }
 
     }
-
-
-    public static List<List<List<String>>> sankoffTopDown (List<Node>internalnodes){
-        List<List<List<String>>> pSets= new ArrayList<>();
-        //loop over different characters to get change List for each character
-        for(int i=0; i<internalnodes.get(0).getParsimonyScores().size(); i++){
-            System.out.println("Characteristic:" + i);
-            List<List<String>> pSetsPerC = new ArrayList<>();
-            List<String> pChanges = new ArrayList<>();
-            //parsimony scores for each internal node for one character in a list
-            List<double[]>parsimonyScores = new ArrayList<double[]>();
-            int[] lengths = new int[internalnodes.size()];
-            int n= 0;
-            for(Node node:internalnodes){
-                parsimonyScores.add(node.getParsimonyScoresAtIndex(i));
-                lengths[n]= node.getParsimonyScoresAtIndex(i).length;
-                n++;
-            }
-            List<Double> pars= new ArrayList<Double>();
-            ArrayList<ArrayList<Integer>> paths = init_td(internalnodes, i);
-            for(int j=0; j<paths.size(); j++){
-                int[] ind=  paths.get(j).stream().mapToInt(q->q).toArray();
-                //System.out.println(Arrays.toString(ind));
-                pars= helperScoresCombination(ind,parsimonyScores);
-                pChanges= detectChanges(ind,pars, internalnodes,i);
-                System.out.println(pChanges);
-                System.out.println("");
-                pSetsPerC.add(pChanges);
-            }
-            pSets.add(pSetsPerC);
-        }
-
-        return pSets;
-    }
-
-
-    public static List<String> detectChanges(int[] indices, List<Double> pars, List<Node> internalnodes,int i){
-        int n= 0;
-        boolean lowHigh = false;
-        int changeInStates= 0;
-        List<String> pChanges = new ArrayList<>();
-        Double inf = Double.POSITIVE_INFINITY;
-        System.out.println(Arrays.toString(indices));
-        for(Node node:internalnodes){
-            String x="";
-            //System.out.println("N: "+n);
-            Node left= node.getLeftChild();
-            Node right= node.getRightChild();
-            double[] sl; double[] sr; double l; double r;
-            double checkscore= pars.get(n);
-            int index= indices[n];
-
-                if(left.getLeftChild()== null && right.getRightChild()==null) {
-                //last internal node, left node and right node are leafe nodes
-                    sl= left.getParsimonyScoresAtIndex(i);
-                    sr= right.getParsimonyScoresAtIndex(i);
-                    l= sl[index];
-                    r= sr[index];
-                    //System.out.println("Node:"+ node.getName()+" "+ "left: "+left.getName() +" "+l +"; "+right.getName()+" "+r);
-                    if(l==inf&&r==inf)break;
-                    if(l == inf){
-                        //System.out.println("Transition Change");
-                        changeInStates=1;
-                        for (int p=0; p<sl.length; p++) {
-                            if(sl[p]!= inf){
-                                l= sl[p];
-                                lowHigh= proofTransitionType(index,p);
-                            }
-                        }
-                        x= getChangeStatements(lowHigh,r,l,changeInStates,checkscore,node,left);
-                        if(x!=""){
-                            pChanges.add(x);
-                        }
-                    }
-
-                    if(r == inf){
-                        //System.out.println("Transition Change");
-                        changeInStates=1;
-                        for (int p=0; p<sr.length; p++) {
-                            if(sr[p]!= inf){
-                                r= sr[p];
-                                lowHigh= proofTransitionType(index,p);
-                            }
-                        }
-                        x= getChangeStatements(lowHigh,r,l,changeInStates,checkscore,node,right);
-                        if(x!=""){
-                            pChanges.add(x);
-                        }
-                    }
-
-            }
-            else if(right.getRightChild()==null&& internalnodes.contains(left)){
-                //right leaf is a leaf node
-                l= pars.get(n+1);
-                sr= right.getParsimonyScoresAtIndex(i);
-                r= sr[index];
-                //System.out.println("Node:"+ node.getName()+" "+ "left: "+left.getName() +" "+l +"; "+right.getName()+" "+r);
-                if(l==checkscore&&r !=0)break;
-                if(r == inf){
-                    //System.out.println("Transition Change");
-                    changeInStates=1;
-                    for (int p=0; p<sr.length; p++) {
-                        changeInStates=1;
-                        if(sr[p]!= inf){
-                            r= sr[p];
-                            lowHigh= proofTransitionType(index,p);
-                        }
-                    }
-                    x= getChangeStatements(lowHigh,r,l,changeInStates,checkscore,node,right);
-                    if(x!=""){
-                        pChanges.add(x);
-                    }
-                }
-
-                if(index != indices[n+1]&& r==0){
-                    changeInStates=1;
-                    if(l+r+changeInStates==checkscore){
-                        if(index==0 && indices[n+1]==1){
-                            lowHigh= true;
-                        }
-                        if(index==1&& indices[n+1]==0){
-                            lowHigh= false;
-                        }
-                    }
-                    x= getChangeStatements(lowHigh,r,l,changeInStates,checkscore,node,left);
-                    if(x!=""){
-                        pChanges.add(x);
-                    }
-                }
-
-            }
-
-            else if(left.getLeftChild()==null&& internalnodes.contains(right)){
-                // left leaf is a leaf node
-                r= pars.get(n+1);
-                sl= left.getParsimonyScoresAtIndex(i);
-                l= sl[index];
-                //System.out.println("Node:"+ node.getName()+" "+ "left: "+left.getName() +" "+l +"; "+right.getName()+" "+r);
-                if(r==checkscore&& l !=0)break;
-                if(l == inf ) {
-                    //System.out.println("Transition Change");
-                    changeInStates = 1;
-                    for (int p = 0; p < sl.length; p++) {
-                        if (sl[p] != inf) {
-                            l = sl[p];
-                            lowHigh= proofTransitionType(index,p);
-                        }
-                    }
-                    x= getChangeStatements(lowHigh,r,l,changeInStates,checkscore,node,left);
-                    if(x!=""){
-                        pChanges.add(x);
-                    }
-                }
-
-                if(index != indices[n+1]){
-                    changeInStates=1;
-                    if(l+r+changeInStates==checkscore){
-                        if(r==0&& index==1){
-                            lowHigh= false;
-                        }
-                        if(r==1&& index==0){
-                            lowHigh= true;
-                        }
-                    }
-                    x= getChangeStatements(lowHigh,r,l,changeInStates,checkscore,node,right);
-                    if(x!=""){
-                        pChanges.add(x);
-                    }
-                }
-            }
-            else if(internalnodes.contains(left)&&internalnodes.contains(right)){
-                sl= left.getParsimonyScoresAtIndex(i);
-                sr= right.getParsimonyScoresAtIndex(i);
-                l= sl[index];
-                r= sr[index];
-                //System.out.println("Node:"+ node.getName()+" "+ "left: "+left.getName() +" "+l +"; "+right.getName()+" "+r);
-                if(l+r!=checkscore){
-                    changeInStates=1;
-
-                    if(l+changeInStates==checkscore){
-                        if(index==1){
-                            lowHigh= false;
-                        }
-                        if(index==0){
-                            lowHigh= true;
-                        }
-                        if(lowHigh){ x= node.getName().toLowerCase()+" ---> "+right.getName().toUpperCase();}
-                        else{ x= node.getName().toUpperCase()+" ---> "+right.getName().toLowerCase();}
-                        if(x!=""){
-                            pChanges.add(x);
-                        }
-                    }
-                    if(r+changeInStates==checkscore){
-                        if(index==1){
-                            lowHigh= false;
-                        }
-                        if(index==0){
-                            lowHigh= true;
-                        }
-                        if(lowHigh){ x= node.getName().toLowerCase()+" ---> "+left.getName().toUpperCase();}
-                        else{ x= node.getName().toUpperCase()+" ---> "+left.getName().toLowerCase();}
-                        if(x!=""){
-                            pChanges.add(x);
-                        }
-                    }
-                }
-                }
-            n++;
-        }
-        return pChanges;
-
-    }
-
-    public static boolean proofTransitionType(int index, int p){
-        /**
-        * returns type of transition
-        * int index= index of current Possible leafnode index
-        * int p = changed value
-        * */
-        boolean lowHigh= false;
-            if(index==0&&p==1){
-                lowHigh= true;}
-            else if(index==1&&p==0){
-                lowHigh= false;
-            }
-        return lowHigh;
-    }
-
-    public static String getChangeStatements(boolean lowHigh, double r, double l, int changeInStates, double checkscore, Node node, Node change){
-        /**
-         * returns change statement for a case
-         * r= value of right child
-         * l= value of left child
-         * changeInStates  = 1 if a transitionstate is detected
-         * checkscore = score of the node at certain position
-         * node= parent node
-         * change = Node where change is detected
-         */
-        String x= "";
-        //No Change statement is not required only for testing purposes
-        //if(checkscore==(l+r)){}
-        if(checkscore==(l+r)+changeInStates){
-            if(lowHigh){ x= node.getName().toLowerCase()+" ---> "+change.getName().toUpperCase();}
-            else{ x= node.getName().toUpperCase()+" ---> "+change.getName().toLowerCase();}
-        }
-        return x;
-    }
-
-    public static List<Double> helperScoresCombination(int[] indices,  List<double[]>parsimonyScores){
-        List<Double> scores= new ArrayList<Double>();
-        for(int n=0; n<indices.length; n++){
-            int i = indices[n];
-            double[]score = parsimonyScores.get(n);
-            double s = score[i];
-            scores.add(s);
-        }
-        return scores;
-    }
-
-
-    public static double computeJaccardIndex( List<String> A, List<String> B, int i , int j) {
-        // from assignment07 Sequence Bioinfromatics
-
-        List<String> union= new ArrayList<String>(A);
-        Set<String> intersect = new HashSet<>(A);
-        for(String s :B){if(!union.contains(s)){union.add(s);}}
-        intersect.retainAll(B);
-        intersect.retainAll(union);
-
-        double unionSize = union.size();
-        double intersectionSize = intersect.size();
-        double jc = intersectionSize/unionSize;
-        if(jc!= 0.0){
-            System.out.println("Character A= " + i + ", Character B= " + j);
-            System.out.println("Union: "+ union);
-            System.out.println("Intersect: "+ intersect);
-            System.out.println("Weighted Jaccard Index: "+ jc);
-            System.out.println("");
-        }
-
-        return jc;
-    }
-
-
-    public static List<Node> reverseOrder(List<Node>list){
-        List<Node> newList = new ArrayList<>();
-        for (int i = list.size()-1; i >= 0; i--) {
-            newList.add(list.get(i));
-        }
-        return newList;
-    }
-
-    public static List<Node> initScores(List<Node> newlist, String[][] states, Dictionary dic) {
-        Double inf = Double.POSITIVE_INFINITY;
-        List<Node> parentsList = new ArrayList<>();
-        for(Node node:newlist){
-            String[] animalStates = node.getCharacterStates();
-            ArrayList<double[]> sc = new ArrayList<double[]>();
-            //init states
-            if(node.getCharacterStates()!= null){
-                for (int i=0; i<animalStates.length; i++){
-                    String [] cStates= states[i];
-                    double [] scores = new double[cStates.length];
-                    for(int j=0; j<cStates.length; j++){
-                        if(animalStates[i].equals(cStates[j])){scores[j] = 0;}
-                        else{scores[j]= inf;}
-                    }
-                    sc.add(scores);
-                    System.out.println("Initialisation-Scores " + node.getName()+" Characterstate "+(i+1)+": "+ Arrays.toString(scores));
-                }
-                node.setParsimonyScores(sc);
-            }
-            else {
-                parentsList.add(node);
-            }
-        }
-        return parentsList;
-    }
-
-    //get parsimonial scores for each internal node
-    public static void updateScores(List<Node>newlist,String[][] states, double [][]weightMatrix){
-        /**
-         * Update the scores in bottom up phase of Sankoffs small parsimoies algorithm
-         */
-        for(Node node:newlist){
-                Node childLeft = node.getLeftChild();
-                Node childRight = node.getRightChild();
-                ArrayList<double[]> PS = new ArrayList<double[]>();
-                //newlist.get(0).getCharacterStates().length
-                for (int k = 0; k < states.length; k++) {
-                    double[] sL = childLeft.getParsimonyScoresAtIndex(k);
-                    double[] sR = childRight.getParsimonyScoresAtIndex(k);
-                    ArrayList<Double> low_vectorLeft = new ArrayList<Double>();
-                    ArrayList<Double> low_vectorRight = new ArrayList<Double>();
-                    ArrayList<Double> high_vectorLeft = new ArrayList<Double>();
-                    ArrayList<Double> high_vectorRight = new ArrayList<Double>();
-                    ArrayList<Double> unknown_vectorLeft = new ArrayList<Double>();
-                    ArrayList<Double> unknown_vectorRight = new ArrayList<Double>();
-                    low_vectorLeft.add(sL[0]+weightMatrix[0][0]);
-                    low_vectorLeft.add(sL[1]+weightMatrix[0][1]);
-                    low_vectorLeft.add(sL[2]+weightMatrix[0][2]);
-                    low_vectorRight.add(sR[0]+weightMatrix[0][0]);
-                    low_vectorRight.add(sR[1]+weightMatrix[0][1]);
-                    low_vectorRight.add(sR[2]+weightMatrix[0][2]);
-                    high_vectorLeft.add(sL[0]+weightMatrix[1][0]);
-                    high_vectorLeft.add(sL[1]+weightMatrix[1][1]);
-                    high_vectorLeft.add(sL[2]+weightMatrix[1][2]);
-                    high_vectorRight.add(sR[0]+weightMatrix[1][0]);
-                    high_vectorRight.add(sR[1]+weightMatrix[1][1]);
-                    high_vectorRight.add(sR[2]+weightMatrix[1][2]);
-                    unknown_vectorLeft.add(sL[0]+weightMatrix[2][0]);
-                    unknown_vectorLeft.add(sL[1]+weightMatrix[2][1]);
-                    unknown_vectorLeft.add(sL[2]+weightMatrix[2][2]);
-                    unknown_vectorRight.add(sR[0]+weightMatrix[2][0]);
-                    unknown_vectorRight.add(sR[1]+weightMatrix[2][1]);
-                    unknown_vectorRight.add(sR[2]+weightMatrix[2][2]);
-                    double[] S = new double[3];
-                    S[0] = ((Collections.min(low_vectorLeft) + Collections.min(low_vectorRight)));
-                    S[1] = ((Collections.min(high_vectorLeft) + Collections.min(high_vectorRight)));
-                    S[2] = ((Collections.min(unknown_vectorLeft) + Collections.min(unknown_vectorRight)));
-                    PS.add(S);
-
-                    System.out.println("Updated Scores " + node.getName() + " "+"Characterstate "+(k+1) + ": " + Arrays.toString(S));
-                }
-                node.setParsimonyScores(PS);
-        }
-    }
-
     /**
      * Function to parse a newick String and assigning the characters to the leafes
      * @param newick the newick String
@@ -593,6 +216,40 @@ public class useOfSankoff_Spath_Auckenthaler {
         return root;
     }
 
+
+    /**
+     * reads the possible states from a file
+     * format: each line: low_state,high_state,unknown
+     * same order as in character state data
+     * @param csvFile path to the file
+     * @return matrix of existing states
+     */
+    public static String[][] read_states(String csvFile) {
+        ArrayList<String[]> states = new ArrayList<>();
+        try {
+            File file = new File(csvFile);
+            FileReader fr = new FileReader(file);
+            BufferedReader br = new BufferedReader(fr);
+            String line = "";
+            String[] tempArr;
+            while((line = br.readLine()) != null) {
+                // split the lines by comma
+                tempArr = line.split(",");
+                // add to matrix
+                states.add(tempArr);
+            }
+            br.close();
+        } catch(IOException ioe) {
+            ioe.printStackTrace();
+        }
+        String[][] r_states = new String[states.size()][];
+        for (int i = 0; i < states.size(); i++) {
+            r_states[i] = states.get(i);
+        }
+        return r_states;
+    }
+
+
     /**
      * reads the file with the newick String in it
      * @param csvFile The path to the file
@@ -645,36 +302,164 @@ public class useOfSankoff_Spath_Auckenthaler {
     }
 
     /**
-     * reads the possible states from a file
-     * format: each line: low_state,high_state,unknown
-     * same order as in character state data
-     * @param csvFile path to the file
-     * @return matrix of existing states
+     * Helper function to returns the reveres order of a list
+     * @param list of Nodes
+     * @return List of Nodes
      */
-    public static String[][] read_states(String csvFile) {
-        ArrayList<String[]> states = new ArrayList<>();
-        try {
-            File file = new File(csvFile);
-            FileReader fr = new FileReader(file);
-            BufferedReader br = new BufferedReader(fr);
-            String line = "";
-            String[] tempArr;
-            while((line = br.readLine()) != null) {
-                // split the lines by comma
-                tempArr = line.split(",");
-                // add to matrix
-                states.add(tempArr);
-            }
-            br.close();
-        } catch(IOException ioe) {
-            ioe.printStackTrace();
+    public static List<Node> reverseOrder(List<Node>list){
+        List<Node> newList = new ArrayList<>();
+        for (int i = list.size()-1; i >= 0; i--) {
+            newList.add(list.get(i));
         }
-        String[][] r_states = new String[states.size()][];
-        for (int i = 0; i < states.size(); i++) {
-            r_states[i] = states.get(i);
-        }
-        return r_states;
+        return newList;
     }
+
+    /**
+     * Initalize the parsimoy scores of leaf nodes, start of Sankoff's algorithm
+     * @param newlist
+     * @param states
+     * @param dic
+     * @return List of Nodes
+     */
+    public static List<Node> initScores(List<Node> newlist, String[][] states, Dictionary dic) {
+        Double inf = Double.POSITIVE_INFINITY;
+        List<Node> parentsList = new ArrayList<>();
+        for(Node node:newlist){
+            //get the characteristics of a node
+            String[] animalStates = node.getCharacterStates();
+            ArrayList<double[]> sc = new ArrayList<double[]>();
+            //init states
+            if(node.getCharacterStates()!= null){
+                //update scores for each characteristic
+                for (int i=0; i<animalStates.length; i++){
+                    String [] cStates= states[i];
+                    double [] scores = new double[cStates.length];
+                    // only the state which is mentioned in animalstate is set to 0 the rest is infinity
+                    for(int j=0; j<cStates.length; j++){
+                        if(animalStates[i].equals(cStates[j])){scores[j] = 0;}
+                        else{scores[j]= inf;}
+                    }
+                    sc.add(scores);
+                    //print statement
+                    System.out.println("Initialisation-Scores " + node.getName()+" Characterstate "+(i+1)+": "+ Arrays.toString(scores));
+                }
+                //set the parsimony score of the node
+                node.setParsimonyScores(sc);
+            }
+            else {
+                parentsList.add(node);
+            }
+        }
+        return parentsList;
+    }
+
+    /**
+     * Update the paryimony score of internal nodes, bottom up part of Sankoff's algorithm
+     * @param newlist reverse ordered list of Nodes
+     * @param states possible states
+     * @param weightMatrix double -matrix containing cost matrix values
+     */
+    public static void updateScores(List<Node>newlist,String[][] states, double [][]weightMatrix){
+        //iterate over each node in list
+        for(Node node:newlist){
+            //get children nodes
+            Node childLeft = node.getLeftChild();
+            Node childRight = node.getRightChild();
+            ArrayList<double[]> PS = new ArrayList<double[]>();
+            //perform it for all states each node has
+            for (int k = 0; k < states.length; k++) {
+                double[] sL = childLeft.getParsimonyScoresAtIndex(k);
+                double[] sR = childRight.getParsimonyScoresAtIndex(k);
+                ArrayList<Double> low_vectorLeft = new ArrayList<Double>();
+                ArrayList<Double> low_vectorRight = new ArrayList<Double>();
+                ArrayList<Double> high_vectorLeft = new ArrayList<Double>();
+                ArrayList<Double> high_vectorRight = new ArrayList<Double>();
+                ArrayList<Double> unknown_vectorLeft = new ArrayList<Double>();
+                ArrayList<Double> unknown_vectorRight = new ArrayList<Double>();
+                //calculate S_0 for left child
+                low_vectorLeft.add(sL[0]+weightMatrix[0][0]);
+                low_vectorLeft.add(sL[1]+weightMatrix[0][1]);
+                low_vectorLeft.add(sL[2]+weightMatrix[0][2]);
+                //calculate S_0 for right child
+                low_vectorRight.add(sR[0]+weightMatrix[0][0]);
+                low_vectorRight.add(sR[1]+weightMatrix[0][1]);
+                low_vectorRight.add(sR[2]+weightMatrix[0][2]);
+                //calculate S_1 for left child
+                high_vectorLeft.add(sL[0]+weightMatrix[1][0]);
+                high_vectorLeft.add(sL[1]+weightMatrix[1][1]);
+                high_vectorLeft.add(sL[2]+weightMatrix[1][2]);
+                //calculate S_1 for right child
+                high_vectorRight.add(sR[0]+weightMatrix[1][0]);
+                high_vectorRight.add(sR[1]+weightMatrix[1][1]);
+                high_vectorRight.add(sR[2]+weightMatrix[1][2]);
+                //calculate S_2 (unknown state) for left child
+                unknown_vectorLeft.add(sL[0]+weightMatrix[2][0]);
+                unknown_vectorLeft.add(sL[1]+weightMatrix[2][1]);
+                unknown_vectorLeft.add(sL[2]+weightMatrix[2][2]);
+                //calculate S_2 (unknown state) for right child
+                unknown_vectorRight.add(sR[0]+weightMatrix[2][0]);
+                unknown_vectorRight.add(sR[1]+weightMatrix[2][1]);
+                unknown_vectorRight.add(sR[2]+weightMatrix[2][2]);
+                //init parsimony verctor for internal node
+                double[] S = new double[3];
+                // append pasimonys at 0,1 and unknown possition by sum up min vector values from above
+                S[0] = ((Collections.min(low_vectorLeft) + Collections.min(low_vectorRight)));
+                S[1] = ((Collections.min(high_vectorLeft) + Collections.min(high_vectorRight)));
+                S[2] = ((Collections.min(unknown_vectorLeft) + Collections.min(unknown_vectorRight)));
+                PS.add(S);
+                //print statement
+                System.out.println("Updated Scores " + node.getName() + " "+"Characterstate "+(k+1) + ": " + Arrays.toString(S));
+            }
+            //store results in the Node
+            node.setParsimonyScores(PS);
+        }
+    }
+
+    /**
+     * performs the top down part of Sankoff'a algorithm and determines the corresponding state changes on the tree in a particular
+     * parsimonious path(subtree)
+     * @param internalnodes (list of internal nodes for given tree)
+     * @return List<List<List<String>>> detected changes for each parsimonious path for each character
+     */
+    public static List<List<List<String>>> sankoffTopDown (List<Node>internalnodes){
+        List<List<List<String>>> pSets= new ArrayList<>();
+        //loop over different characters to get change List for each character
+        for(int i=0; i<internalnodes.get(0).getParsimonyScores().size(); i++){
+            System.out.println("Characteristic:" + i);
+            List<List<String>> pSetsPerC = new ArrayList<>();
+            List<String> pChanges = new ArrayList<>();
+            //parsimony scores for each internal node for one character in a list
+            List<double[]>parsimonyScores = new ArrayList<double[]>();
+            int[] lengths = new int[internalnodes.size()];
+            int n= 0;
+            for(Node node:internalnodes){
+                parsimonyScores.add(node.getParsimonyScoresAtIndex(i));
+                lengths[n]= node.getParsimonyScoresAtIndex(i).length;
+                n++;
+            }
+            List<Double> pars= new ArrayList<Double>();
+            //get possible parsimonious paths for internal nodes and a particular characteristic (i)
+            ArrayList<ArrayList<Integer>> paths = init_td(internalnodes, i);
+            //change arraylist to int array
+            //loop over each possible path
+            for(int j=0; j<paths.size(); j++){
+                int[] ind=  paths.get(j).stream().mapToInt(q->q).toArray();
+                //get matching parsimony scores for internal nodes and path.
+                pars= helperScoresCombination(ind,parsimonyScores);
+                // detect the changes
+                pChanges= detectChanges(ind,pars, internalnodes,i);
+                System.out.println(pChanges);
+                System.out.println("");
+                pSetsPerC.add(pChanges);
+            }
+            //append to List
+            pSets.add(pSetsPerC);
+        }
+
+        return pSets;
+    }
+
+
 
     /**
      * initializes the matrix for the top down face of the sankoff algorithm
@@ -779,6 +564,320 @@ public class useOfSankoff_Spath_Auckenthaler {
         if ((old_state == new_state2) && (old_score-1 == new_score1 + new_score2)) return true;
         else  return false;
     }
+    /**
+     * Find the changes in a given path (indices) and get the typ of it "example low--> high change,...
+     * @param indices int array of 0 and 1, give the index of internal node states
+     * @param pars parsomony scores correspnding to indices
+     * @param internalnodes List of internal nodes
+     * @param i  int characteristic
+     * @return List of String containing the changes
+     */
+
+    public static List<String> detectChanges(int[] indices, List<Double> pars, List<Node> internalnodes,int i){
+        int n= 0;
+        boolean lowHigh = false;
+        int changeInStates= 0;
+        List<String> pChanges = new ArrayList<>();
+        Double inf = Double.POSITIVE_INFINITY;
+        System.out.println(Arrays.toString(indices));
+        // loop through each node in internalnodes
+        for(Node node:internalnodes){
+            String x="";
+            //get left and right child of node
+            Node left= node.getLeftChild();
+            Node right= node.getRightChild();
+            double[] sl; double[] sr; double l; double r;
+            //get the parsomony score of one index
+            double checkscore= pars.get(n);
+            //get one index of indices
+            int index= indices[n];
+            //proof condition both child's are leaf nodes
+            if(left.getLeftChild()== null && right.getRightChild()==null) {
+                //get scores of leaf nodes
+                sl= left.getParsimonyScoresAtIndex(i);
+                sr= right.getParsimonyScoresAtIndex(i);
+                //get score at index of the path
+                l= sl[index];
+                r= sr[index];
+                if(l==inf&&r==inf)break;
+                //if left child is infinity find index which is not
+                if(l == inf){
+                    changeInStates=1;
+                    for (int p=0; p<sl.length; p++) {
+                        if(sl[p]!= inf){
+                            l= sl[p];
+                            //get the type of change
+                            lowHigh= proofTransitionType(index,p);
+                        }
+                    }
+                    //get correct change statement
+                    x= getChangeStatements(lowHigh,r,l,changeInStates,checkscore,node,left);
+                    //if the statement is not empty add it to list
+                    if(x!=""){
+                        pChanges.add(x);
+                    }
+                }
+                //if right child is infinity find index which is not
+                if(r == inf){
+                    changeInStates=1;
+                    for (int p=0; p<sr.length; p++) {
+                        if(sr[p]!= inf){
+                            r= sr[p];
+                            //get type of transition change
+                            lowHigh= proofTransitionType(index,p);
+                        }
+                    }
+                    //get the statement of Change eg. x---> Y
+                    x= getChangeStatements(lowHigh,r,l,changeInStates,checkscore,node,right);
+                    //if the statement is not empty add it to list
+                    if(x!=""){
+                        pChanges.add(x);
+                    }
+                }
+
+            }
+            //proof next condition right child is a leaf node and left node in an internal node
+            else if(right.getRightChild()==null&& internalnodes.contains(left)){
+                //get score at index +1
+                l= pars.get(n+1);
+                //get scores form right node
+                sr= right.getParsimonyScoresAtIndex(i);
+                //get score at index of path
+                r= sr[index];
+                if(l==checkscore&&r !=0)break;
+                //if the right score is infinity find index where is not
+                if(r == inf){
+                    //set changescore +1
+                    changeInStates=1;
+                    for (int p=0; p<sr.length; p++) {
+                        changeInStates=1;
+                        if(sr[p]!= inf){
+                            r= sr[p];
+                            //get type of transition change
+                            lowHigh= proofTransitionType(index,p);
+                        }
+                    }
+                    //get the statement of Change eg. x---> Y
+                    x= getChangeStatements(lowHigh,r,l,changeInStates,checkscore,node,right);
+                    //if the statement is not empty add it to list
+                    if(x!=""){
+                        pChanges.add(x);
+                    }
+                }
+                //proof change between the node and childe node (internal node) if the r score is 0 at index
+                if(index != indices[n+1]&& r==0){
+                    //set changescore to +1
+                    changeInStates=1;
+                    if(l+r+changeInStates==checkscore){
+                        if(index==0 && indices[n+1]==1){
+                            //set change type to lowHigh
+                            lowHigh= true;
+                        }
+                        if(index==1&& indices[n+1]==0){
+                            //set change type to not lowHigh
+                            lowHigh= false;
+                        }
+                    }
+                    //get the statement of Change eg. x---> Y
+                    x= getChangeStatements(lowHigh,r,l,changeInStates,checkscore,node,left);
+                    //if the statement is not empty add it to list
+                    if(x!=""){
+                        pChanges.add(x);
+                    }
+                }
+
+            }
+            //proof next condition left child is a leaf node and right node in an internal node
+            else if(left.getLeftChild()==null&& internalnodes.contains(right)){
+                //get score at index+1
+                r= pars.get(n+1);
+                //get scores form left node
+                sl= left.getParsimonyScoresAtIndex(i);
+                //get score at index of path
+                l= sl[index];
+                if(r==checkscore&& l !=0)break;
+                //if the left score is infinity find index where is not
+                if(l == inf ) {
+                    //set changescore +1
+                    changeInStates = 1;
+                    for (int p = 0; p < sl.length; p++) {
+                        if (sl[p] != inf) {
+                            l = sl[p];
+                            //get type of transition change
+                            lowHigh= proofTransitionType(index,p);
+                        }
+                    }
+                    //get the statement of Change eg. x---> Y
+                    x= getChangeStatements(lowHigh,r,l,changeInStates,checkscore,node,left);
+                    //
+                    if(x!=""){
+                        pChanges.add(x);
+                    }
+                }
+
+                if(index != indices[n+1]){
+                    changeInStates=1;
+                    if(l+r+changeInStates==checkscore){
+                        if(r==0&& index==1){
+                            lowHigh= false;
+                        }
+                        if(r==1&& index==0){
+                            lowHigh= true;
+                        }
+                    }
+                    x= getChangeStatements(lowHigh,r,l,changeInStates,checkscore,node,right);
+                    if(x!=""){
+                        //if the statement is not empty add it to list
+                        pChanges.add(x);
+                    }
+                }
+            }
+            //proof last condition both child's are internal nodes
+            else if(internalnodes.contains(left)&&internalnodes.contains(right)){
+                //get parsimony scores for characteritic
+                sl= left.getParsimonyScoresAtIndex(i);
+                sr= right.getParsimonyScoresAtIndex(i);
+                //get score at index
+                l= sl[index];
+                r= sr[index];
+                if(l+r!=checkscore){
+                    //set changeValue to +1
+                    changeInStates=1;
+                    //proof type of change
+                    if(l+changeInStates==checkscore){
+                        if(index==1){
+                            lowHigh= false;
+                        }
+                        if(index==0){
+                            lowHigh= true;
+                        }
+                        //get change statement
+                        if(lowHigh){ x= node.getName().toLowerCase()+" ---> "+right.getName().toUpperCase();}
+                        else{ x= node.getName().toUpperCase()+" ---> "+right.getName().toLowerCase();}
+                        if(x!=""){
+                            pChanges.add(x);
+                        }
+                    }
+                    //proof next possible transition and get transition type
+                    if(r+changeInStates==checkscore){
+                        if(index==1){
+                            lowHigh= false;
+                        }
+                        if(index==0){
+                            lowHigh= true;
+                        }
+                        //get change statement
+                        if(lowHigh){ x= node.getName().toLowerCase()+" ---> "+left.getName().toUpperCase();}
+                        else{ x= node.getName().toUpperCase()+" ---> "+left.getName().toLowerCase();}
+                        //if statement is not empty add it to List
+                        if(x!=""){
+                            pChanges.add(x);
+                        }
+                    }
+                }
+            }
+            //next index in path
+            n++;
+        }
+        return pChanges;
+
+    }
+
+    /**
+     *  proof the type of transtion given
+     * @param index int index of path
+     * @param p int value of other score index
+     * @return boolean
+     */
+    public static boolean proofTransitionType(int index, int p){
+        /**
+         * returns type of transition
+         * int index= index of current Possible leafnode index
+         * int p = changed value
+         * */
+        boolean lowHigh= false;
+        if(index==0&&p==1){
+            lowHigh= true;}
+        else if(index==1&&p==0){
+            lowHigh= false;
+        }
+        return lowHigh;
+    }
+
+    /**
+     * get the changestatement of a change
+     * @param lowHigh boolean ture or false
+     * @param r right int score
+     * @param l left int score
+     * @param changeInStates int change value +1
+     * @param checkscore parsimony score for an index
+     * @param node Node
+     * @param change child node which had changed
+     * @return String change statement
+     */
+    public static String getChangeStatements(boolean lowHigh, double r, double l, int changeInStates, double checkscore, Node node, Node change){
+        String x= "";
+        //No Change statement is not required only for testing purposes
+        //if(checkscore==(l+r)){}
+        if(checkscore==(l+r)+changeInStates){
+            if(lowHigh){ x= node.getName().toLowerCase()+" ---> "+change.getName().toUpperCase();}
+            else{ x= node.getName().toUpperCase()+" ---> "+change.getName().toLowerCase();}
+        }
+        return x;
+    }
+
+    /**
+     * Helper function to get scores for int array indices
+     * @param indices paths in the tree given index of internal nodes
+     * @param parsimonyScores parsimony scores
+     * @return list of double values (parsimony values)
+     */
+
+    public static List<Double> helperScoresCombination(int[] indices,  List<double[]>parsimonyScores){
+        List<Double> scores= new ArrayList<Double>();
+        for(int n=0; n<indices.length; n++){
+            int i = indices[n];
+            double[]score = parsimonyScores.get(n);
+            double s = score[i];
+            scores.add(s);
+        }
+        return scores;
+    }
+
+    /**
+     * computes the weighted jaccard index for two sets of change statements
+     * @param A List of String change statement for a particular characteristic
+     * @param B List of String change statements for a particular characteristic
+     * @param i int value of characteristc alpha
+     * @param j int value of characteristic beta
+     * @return double value of weighted jaccard index
+     */
+    public static double computeJaccardIndex( List<String> A, List<String> B, int i , int j) {
+
+        List<String> union= new ArrayList<String>(A);
+        Set<String> intersect = new HashSet<>(A);
+        //only add Strign s in B if it is not already present in union of A
+        for(String s :B){if(!union.contains(s)){union.add(s);}}
+        //get intersection of A and B
+        intersect.retainAll(B);
+        intersect.retainAll(union);
+        //get length of union and intersection
+        double unionSize = union.size();
+        double intersectionSize = intersect.size();
+        //compute jaccard index
+        double jc = intersectionSize/unionSize;
+        //only print the statement of the values if they are not 0
+        if(jc!= 0.0){
+            System.out.println("Characteristic alpha= " + i + ", characteristic beta= " + j);
+            System.out.println("Union: "+ union);
+            System.out.println("Intersect: "+ intersect);
+            System.out.println("Weighted Jaccard Index: "+ jc);
+            System.out.println("");
+        }
+
+        return jc;
+    }
+
 
     /**
      * computes the smallest value in an array
