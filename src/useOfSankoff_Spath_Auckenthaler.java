@@ -37,7 +37,7 @@ public class useOfSankoff_Spath_Auckenthaler {
         try {
             if(args.length != 3 && args.length != 0) {
                 //throw new IllegalArgumentException("Usage: useOfSankoff_Spath_Auckenthaler newick_path, data_path, states_path");
-                throw new IOException("Usage: useOfSankoff_Spath_Auckenthaler newick_path, data_path, states_path");
+                throw new IOException("Usage: useOfSankoff_Spath_Auckenthaler newick_path data_path states_path");
             }
             if(args.length == 3) {
                 newick = readNewick(args[0]);
