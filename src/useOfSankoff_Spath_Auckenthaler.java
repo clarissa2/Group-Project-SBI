@@ -21,28 +21,19 @@ public class useOfSankoff_Spath_Auckenthaler {
         Double inf = Double.POSITIVE_INFINITY;
 
 
-        // read the string
+        // default path to newick string
         String newick = readNewick("pantherinae.newick");
         //sort of dollo-cost Matrix for 3 states
         double [][]weightMatrix = new double[][]{{0, 1, 1}, {1, 0, 1}, {inf, inf, 0}};
 
-        //create dictionary of animals and their states
-        Dictionary<String, String[]> characters_dic = read_data("data_pantherinae.csv");
+        // default data path
+        String characters_dic_path = "data_pantherinae.csv";
 
-        // read states
-        //String[][] states = new String[][]{{"low","high","unknown"},{"28","30","unknown"}};
+        // default state path
         String states_path = "states-pantherinae.csv";
 
-        //read in from arguments
-//        if (args.length == 3) {
-//            newick = String.valueOf(args[0]);
-//            characters_dic= read_data(args[1]);
-//            states_path = args[2];
-//
-//        }
-//        else {
-//          //throw new IOException("Usage: useOfSankoff_Spath_Auckenthaler newick, matrix");
-//        }
+
+        // read arguments if exactly 3 are given, if none is given use default data
         try {
             if(args.length != 3 && args.length != 0) {
                 //throw new IllegalArgumentException("Usage: useOfSankoff_Spath_Auckenthaler newick_path, data_path, states_path");
@@ -50,12 +41,13 @@ public class useOfSankoff_Spath_Auckenthaler {
             }
             if(args.length == 3) {
                 newick = readNewick(args[0]);
-                characters_dic= read_data(args[1]);
+                characters_dic_path= args[1];
                 states_path = args[2];
             }
         } catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
         }
+        Dictionary<String, String[]> characters_dic = read_data(characters_dic_path);
         String[][] states = read_states(states_path);
         System.out.println(states.length);
 
