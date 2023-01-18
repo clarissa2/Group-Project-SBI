@@ -22,33 +22,33 @@ public class useOfSankoff_Spath_Auckenthaler {
 
 
         // default path to newick string
-        String newick = readNewick("pantherinae.newick");
+        String newick = readNewick("test/test.newick");
         //sort of dollo-cost Matrix for 3 states
         double [][]weightMatrix = new double[][]{{0, 1, 1}, {1, 0, 1}, {inf, inf, 0}};
 
         // default data path
-        String characters_dic_path = "data_pantherinae.csv";
+        String characters_dic_path = "test/states.csv";
 
         // default state path
-        String states_path = "states-pantherinae.csv";
+        String possible_states_path = "test/possible_states.csv";
 
 
         // read arguments if exactly 3 are given, if none is given use default data
         try {
             if(args.length != 3 && args.length != 0) {
                 //throw new IllegalArgumentException("Usage: useOfSankoff_Spath_Auckenthaler newick_path, data_path, states_path");
-                throw new IOException("Usage: useOfSankoff_Spath_Auckenthaler newick_path data_path states_path");
+                throw new IOException("Usage: useOfSankoff_Spath_Auckenthaler newick_path states_path possible_states_path");
             }
             if(args.length == 3) {
                 newick = readNewick(args[0]);
                 characters_dic_path= args[1];
-                states_path = args[2];
+                possible_states_path = args[2];
             }
         } catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
         }
         Dictionary<String, String[]> characters_dic = read_data(characters_dic_path);
-        String[][] states = read_states(states_path);
+        String[][] states = read_states(possible_states_path);
         System.out.println(states.length);
 
 
