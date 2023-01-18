@@ -31,18 +31,34 @@ public class useOfSankoff_Spath_Auckenthaler {
 
         // read states
         //String[][] states = new String[][]{{"low","high","unknown"},{"28","30","unknown"}};
-        String[][] states = read_states("states-pantherinae.csv");
-        System.out.println(states.length);
+        String states_path = "states-pantherinae.csv";
 
         //read in from arguments
-        if (args.length == 3) {
-            newick = String.valueOf(args[0]);
-            characters_dic= read_data(args[1]);
+//        if (args.length == 3) {
+//            newick = String.valueOf(args[0]);
+//            characters_dic= read_data(args[1]);
+//            states_path = args[2];
+//
+//        }
+//        else {
+//          //throw new IOException("Usage: useOfSankoff_Spath_Auckenthaler newick, matrix");
+//        }
+        try {
+            if(args.length != 3 && args.length != 0) {
+                //throw new IllegalArgumentException("Usage: useOfSankoff_Spath_Auckenthaler newick_path, data_path, states_path");
+                throw new IOException("Usage: useOfSankoff_Spath_Auckenthaler newick_path, data_path, states_path");
+            }
+            if(args.length == 3) {
+                newick = readNewick(args[0]);
+                characters_dic= read_data(args[1]);
+                states_path = args[2];
+            }
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
+        String[][] states = read_states(states_path);
+        System.out.println(states.length);
 
-        }
-        else {
-          //throw new IOException("Usage: useOfSankoff_Spath_Auckenthaler newick, matrix");
-        }
 
         System.out.println("NewickTree:"+newick);
 
