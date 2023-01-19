@@ -115,7 +115,7 @@ public class useOfSankoff_Spath_Auckenthaler {
         //6. Step: Calculate jaccard index between eacht combination of states
         //Change 0 --> 1:
         System.out.println();
-        System.out.println("Weighted JaccardIndex for change 0 --> 1 in both characteristics alpha & beta");
+        System.out.println("Weighted Jaccard Index for change 0 --> 1 in both characteristics alpha & beta");
         for(int i=0; i<SetLowHigh.size()-1; i++){
             for (int j= 1; j<SetLowHigh.size(); j++){
                 if(i!=j) {
@@ -124,7 +124,7 @@ public class useOfSankoff_Spath_Auckenthaler {
             }
         }
         System.out.println();
-        System.out.println("Weighted JaccardIndex for change 1 --> 0 in both characteristics alpha & beta");
+        System.out.println("Weighted Jaccard Index for change 1 --> 0 in both characteristics alpha & beta");
         //Change 1 -->0:
         for(int i=0; i<SetHighLow.size()-1; i++){
             for (int j= 1; j<SetHighLow.size(); j++){
@@ -136,7 +136,7 @@ public class useOfSankoff_Spath_Auckenthaler {
         }
 
         System.out.println();
-        System.out.println("Weighted JaccardIndex for change 1 --> 0 for characteristic alpha and 0-->1 characteristic beta");
+        System.out.println("Weighted Jaccard Index for change 1 --> 0 for characteristic alpha and 0-->1 characteristic beta");
         //Change 1 -->0 & 0-->1:
         for(int i=0; i<SetHighLow.size()-1; i++){
             for (int j= 1; j<SetLowHigh.size(); j++){
@@ -147,7 +147,7 @@ public class useOfSankoff_Spath_Auckenthaler {
         }
 
         System.out.println();
-        System.out.println("Weighted JaccardIndex for change 0--> 1 for characteristic alpha and 1-->0 characteristic beta");
+        System.out.println("Weighted Jaccard Index for change 0--> 1 for characteristic alpha and 1-->0 characteristic beta");
         //Change 0--> 1 and 1 -->0:
         for(int i=0; i< SetLowHigh.size()-1; i++){
             for (int j= 1; j<SetHighLow.size(); j++){
@@ -868,7 +868,7 @@ public class useOfSankoff_Spath_Auckenthaler {
         double jc = intersectionSize/unionSize;
         //only print the statement of the values if they are not 0
         if(jc!= 0.0){
-            System.out.println("Characteristic alpha= " + i + ", characteristic beta= " + j);
+            System.out.println("Characteristic alpha= " + i + ", Characteristic beta= " + j);
             System.out.println("Union: "+ union);
             System.out.println("Intersect: "+ intersect);
             System.out.println("Weighted Jaccard Index: "+ jc);
